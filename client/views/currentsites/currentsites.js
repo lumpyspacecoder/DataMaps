@@ -5,7 +5,7 @@ Template.currentsites.helpers({
     
 	chartObj: function() {
         // need to 
-		var ozoneCursor = OzoneData.find({theSiteRef}, {limit: 240});
+		var ozoneCursor = OzoneData.find({}, {limit: 240});
 		var ozoneConDataforGraph = [];
 		ozoneCursor.forEach(function(time) {
 			ozoneConDataforGraph.push({ x: parseFloat(time.TheTime),

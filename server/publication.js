@@ -16,6 +16,7 @@ Meteor.publish('maincampus', function() {
     return UHMain.find();
 });
 
+
 Meteor.publish('sitesdata', function(latLng) {
     return Sites.find({'location': {
       $near:  {
@@ -26,8 +27,10 @@ Meteor.publish('sitesdata', function(latLng) {
         $maxDistance: 50000000
       }
     }
-  });
-});
+    });
+ });
+
+
 
 
 // Meteor.publish('sitesdata', function() {
@@ -45,6 +48,7 @@ Meteor.publish('userData', function () {
 Meteor.publish('favorites', function () {
     return Favorites.find({ owner: this.userId});
 });
+    
 Meteor.publish('ozonedata', function(siteRef) {
     return OzoneData.find({'siteRef': siteRef}, {sort: {"TheTime": -1}});
 });

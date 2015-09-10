@@ -12,4 +12,5 @@ maazalik:highcharts
 accounts-ui
 accounts-password
 email
-reactive-var
+meteorhacks:npm
+npm-container

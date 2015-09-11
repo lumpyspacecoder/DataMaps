@@ -3,7 +3,7 @@
 //issues - right now it reloads everything on restart and inserts the new ones below
    
 
-    Meteor.publish("LiveFeeds", function (thisSite,epochTime) {
+    Meteor.publish("LiveData", function (thisSite,epochTime) {
         return LiveFeedMonitors.find({
                 site: thisSite,
                 epoch: { $gt: epochTime }
@@ -16,7 +16,7 @@ console.log(LiveFeedMonitors.find({site: '2015'}).count())
 	var fs = Meteor.npmRequire('fs')//.readFile;//Sync;
 	var csvmodule = Meteor.npmRequire('csv');
 	var Future = Meteor.npmRequire('fibers/future')
-	var watcher = chokidar.watch('/Users/nbhossai/2015', {
+	var watcher = chokidar.watch('lumpyspacecoder/UHCBH_DAQData', {
       ignoreInitial: true, //false if you want to load existing folders in path
 	  ignored: /[\/\\]\./,
       usePolling: true,

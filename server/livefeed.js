@@ -5,7 +5,7 @@
 
     Meteor.publish("LiveData", function (thisSite,epochTime) {
         return LiveFeedMonitors.find({
-                site: thisSite,
+                siteRef: thisSite,
                 epoch: { $gt: epochTime }
             }
         );

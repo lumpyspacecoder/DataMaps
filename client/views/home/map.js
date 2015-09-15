@@ -33,28 +33,28 @@ Template.map.rendered = function() {
         
 //        Meteor.subscribe('sitesdata', );
         
-        var sites = Sites.find({}).fetch();
-
-        var contentString = null;
-       
-
-
-        _.each(sites, function(site) {   
-                contentString = document.createElement('a');
-                contentString.setAttribute('href', site.url);
-                contentString.appendChild(document.createTextNode(site.siteName));  
-
-              
-
-                var aMarker = {
-                    lat: site.location[1],
-                    lng: site.location[0],
-                    title: site.Name,
-                    content: site.Name
-                };
-                
-                gmaps.addMarker(aMarker);  
-        });
+//        var sites = Sites.find({}).fetch();
+//
+//        var contentString = null;
+//       
+//
+//
+//        _.each(sites, function(site) {   
+//                contentString = document.createElement('a');
+//                contentString.setAttribute('href', site.url);
+//                contentString.appendChild(document.createTextNode(site.siteName));  
+//
+//              
+//
+//                var aMarker = {
+//                    lat: site.location[1],
+//                    lng: site.location[0],
+//                    title: site.Name,
+//                    content: site.Name
+//                };
+//                
+//                gmaps.addMarker(aMarker);  
+//        });
 
         Meteor.subscribe("userData");
 

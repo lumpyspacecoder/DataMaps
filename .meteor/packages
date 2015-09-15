@@ -13,3 +13,8 @@ accounts-ui
 accounts-password
 email
 meteorhacks:npm
+
+
+npm-container
+semantic:ui
+flemay:less-autoprefixer

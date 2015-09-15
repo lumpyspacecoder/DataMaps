@@ -1,26 +1,25 @@
+Meteor.subscribe('LiveData','UHCLH_DAQData');
+
+
 Template.currentsites.helpers({
     theSiteRef: function() {
+//        return Session.get("selectedSite");
+        Session.set("selectedSite","UHCLH_DAQData");
         return Session.get("selectedSite");
     },
+   
     
-	chartObj: function() {
+	chartObj : function() {
         // need to 
-		var ozoneCursor = OzoneData.find({}, {limit: 240});
+		var ozoneCursor = LiveFeedMonitors.find({siteRef: "UHCLH_DAQData"}, {limit: 240});
 		var ozoneConDataforGraph = [];
 		ozoneCursor.forEach(function(time) {
-			ozoneConDataforGraph.push({ x: parseFloat(time.TheTime),
+			ozoneConDataforGraph.push({ x: parseFloat(time.epoch),
 									y: parseFloat(time.O3_conc),
-									name: parseInt(time.TheTime)/10});
+									name: parseInt(time.epoch)/10});
 		});
 
-		//var ozoneTempCursor = OzoneData.find({}, {limit: 288});
-		var ozoneTempDataforGraph = [];
-		ozoneCursor.forEach(function(time) {
-			ozoneTempDataforGraph.push({ x: parseFloat(time.TheTime),
-									y: parseFloat(time.O3_temp),
-									name: parseInt(time.TheTime)});
-		});
-
+		
 		return {
 			title: {
 				text: 'Ozone Concentration and Temperature for the last 24h'
@@ -38,6 +37,9 @@ Template.currentsites.helpers({
                 y: 50,
                 borderWidth: 1
 			},
+            plotOptions: {
+                turboThreshold : 10000
+            },
 			series: [                 
                 {
                     
@@ -46,15 +48,8 @@ Template.currentsites.helpers({
                     data: ozoneConDataforGraph,
                     color: '#5CA221'                    
                 }
-                ,
-                {
-                    type: "scatter",
-                    name: "Ozone Temperature",
-                    data: ozoneTempDataforGraph,
-                    color: '#C764FC'
-                }
             ]
 		}
 	}
-});
+}); 
 

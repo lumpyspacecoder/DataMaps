@@ -22,12 +22,11 @@
     </div>
 </div>
 </body>
-<template name="main">
-     <a href='#'><span>Current Site Conditions</span></a> <div class="dropdown">
-               
- {{#each currentSite}}
-            {{this}}
-          {{/each}}
 
-           </div>
+<template name="main">
+     <select id="siteselect">
+         {{#each currentSites}}
+         <option href="/currentsites">{{this}}</option>
+         {{/each}}
+         </select>
 </template>

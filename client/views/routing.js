@@ -1,5 +1,5 @@
 Router.route('/', function() {
-    this.render('map');
+    this.render('main');
 });
 
 Router.route('/home', function() {

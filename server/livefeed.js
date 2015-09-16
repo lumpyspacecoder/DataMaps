@@ -1,14 +1,19 @@
-//place in /server folder; watch the right folder    
+//place in /server folder; watch the right folder
 
 //issues - right now it reloads everything on restart and inserts the new ones below
    
 
+    Meteor.publish("LiveMenu", function () {
+       Meteor._sleepForMs(2000);
+        return LiveFeedMonitors.find({});
+    });
+
     Meteor.publish("LiveData", function (thisSite) {
+       Meteor._sleepForMs(2000);
         return LiveFeedMonitors.find({
                 siteRef: thisSite,
       //          epoch: { $gt: epochTime }
-            }
-        );
+            });
     });
 
 //console.log(LiveFeedMonitors.find({site: '2015'}).count())
@@ -33,7 +38,7 @@
 //	log(LiveFeedMonitors.find().count())
 //    //perhaps make ignored include everything? move file after processing??
 //	watcher //everything in the 'add' will be done when folder first added
-//	  .on('add', function(path) { 
+//	  .on('add', function(path) {
 //          log('added file')
 //		var pathArray = path.split('/');
 //		var parentDir = pathArray[pathArray.length-2];
@@ -55,4 +60,4 @@
 //    //.on('addDir', function(path) { log('Directory', path, 'has been added'); }) for new Collections?
 //
 //
-//	
+//

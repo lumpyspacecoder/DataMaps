@@ -1,17 +1,19 @@
-Meteor.subscribe('LiveData','UHCLH_DAQData');
 
 
 Template.currentsites.helpers({
     theSiteRef: function() {
 //        return Session.get("selectedSite");
-        Session.set("selectedSite","UHCLH_DAQData");
+//        Session.set("selectedSite","UHCLH_DAQData");
+
         return Session.get("selectedSite");
     },
    
     
 	chartObj : function() {
-        // need to 
-		var ozoneCursor = LiveFeedMonitors.find({siteRef: "UHCLH_DAQData"}, {limit: 240});
+	  var site =  Session.get("selectedSite");
+	  console.log(site);
+    Meteor.subscribe('LiveData',site);
+		var ozoneCursor = LiveFeedMonitors.find({limit: 240});
 		var ozoneConDataforGraph = [];
 		ozoneCursor.forEach(function(time) {
 			ozoneConDataforGraph.push({ x: parseFloat(time.epoch),
@@ -26,7 +28,7 @@ Template.currentsites.helpers({
 			},
 			credits: {
 				href: "http://hnet.uh.edu",
-				text: "UH-HNET" 
+				text: "UH-HNET"
 			},
 			legend: {
 				layout: 'vertical',
@@ -40,16 +42,16 @@ Template.currentsites.helpers({
             plotOptions: {
                 turboThreshold : 10000
             },
-			series: [                 
+			series: [
                 {
                     
                     type: "scatter",
                     name: "Ozone Concentration",
                     data: ozoneConDataforGraph,
-                    color: '#5CA221'                    
+                    color: '#5CA221'
                 }
             ]
 		}
 	}
-}); 
+});
 

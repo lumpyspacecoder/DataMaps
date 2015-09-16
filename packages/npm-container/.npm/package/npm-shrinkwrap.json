@@ -190,14 +190,6 @@
               }
             }
           }
-        },
-        "fsevents": {
-          "version": "0.3.8",
-          "dependencies": {
-            "nan": {
-              "version": "2.0.9"
-            }
-          }
         }
       }
     },

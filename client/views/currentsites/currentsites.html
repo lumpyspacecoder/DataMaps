@@ -1,5 +1,12 @@
+
+
 <template name="currentsites">    
-    <h2>The last 24h at <br/>{{theSiteRef}}</h2>
-{{> highchartsHelper chartId="ozoneCL" chartWidth="100%" chartObject=chartObj}}
+    
+    <h2 align="center">The last 24h at <select id="siteselect">
+         {{#each currentSites}}
+         <option href="/currentsites">{{this}}</option>
+         {{/each}}
+         </select> </h2> 
+<div id="container-chart-reactive" style="width: 300px; height: 200px;"></div>
    
 </template>

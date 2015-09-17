@@ -2,9 +2,6 @@ Router.route('/', function() {
     this.render('main');
 });
 
-Router.route('/home', function() {
-    this.render('map');
-});
 
 Router.route('/maincampus', function() {
     this.render('maincampus');

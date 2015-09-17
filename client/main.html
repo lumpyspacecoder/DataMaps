@@ -9,24 +9,25 @@
 </head>
 <body>
     <div id='cssmenu'>
+                
     <ul>
-        <li><a href="/home"><span>Home</span></a></li>
-      <li>{{>main}}</li>
-
-          
+        
+<!--      <li>{{>main}}</li>-->
+        <li><a href="/"><span>HNET</span></a></li>
+        <li><a href="/currentsites"><span>Current Sites</span></a></li>
         <li class='login'><span>{{> loginButtons}}</span></li>
     </ul>
+        
     </div>
-<div class="container app-width">
-    <div id="main">
-    </div>
-</div>
-</body>
 
-<template name="main">
+        {{>map}}
+   
+</body>
+<!--
+
      <select id="siteselect">
          {{#each currentSites}}
          <option href="/currentsites">{{this}}</option>
          {{/each}}
          </select>
-</template>
+</template>-->

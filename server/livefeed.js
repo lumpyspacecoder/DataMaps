@@ -4,16 +4,11 @@
    
 
     Meteor.publish("LiveMenu", function () {
-       Meteor._sleepForMs(2000);
         return LiveFeedMonitors.find({});
     });
 
-    Meteor.publish("LiveData", function (thisSite) {
-       Meteor._sleepForMs(2000);
-        return LiveFeedMonitors.find({
-                siteRef: thisSite,
-      //          epoch: { $gt: epochTime }
-            });
+    Meteor.publish("LiveData", function () {
+        return LiveFeedMonitors.find({});
     });
 
 //console.log(LiveFeedMonitors.find({site: '2015'}).count())

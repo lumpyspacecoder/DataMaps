@@ -3,80 +3,78 @@ var chart = null;
 
 function reactiveArea() {
 	  var site =  Session.get("selectedSite");
-        Meteor.subscribe('LiveData',site);
-		var ozoneCursor = LiveFeedMonitors.find({limit: 240});
+        Meteor.subscribe('LiveData');
+		var ozoneCursor = LiveFeedMonitors.find({siteRef:site}, {limit: 240});
 		var ozoneConDataforGraph = [];
 		ozoneCursor.forEach(function(time) {
-			ozoneConDataforGraph.push({ x: parseFloat(time.epoch),
-									y: parseFloat(time.O3_conc),
-									name: parseInt(time.epoch)/10});
+			ozoneConDataforGraph.push({ x: new Date(time.epoch*1000),
+									y: parseFloat(time.O3_conc)});
 		});
+    
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
     
     chart = $('#container-chart-reactive').highcharts({
         
         
-    chart: {
-        type: 'area'
-    },
-    
-    title: {
-        text: 'Ozone Readings at' + site
-    },
-    
-    credits: {
-				href: "http://hnet.uh.edu",
-				text: "UH-HNET"
-    },
-    
-    xAxis: {
-        allowDecimals: false,
-        labels: {
-            formatter: function () {
-                return this.value; // clean, unformatted number for year
-            }
-        }
-    },
-        
-    yAxis: {
-        title: {
-            text: 'O3 Reading'
+                chart: {
+            type: 'areaspline'
         },
-        labels: {
-            formatter: function () {
-                return this.value;
+        
+        title: {
+            text: 'Ozone Readings at ' + site
+        },
+        
+        credits: {
+            text: "UH-HNET",
+            href: "http://hnet.uh.edu"
+            
+        },
+        
+        xAxis: {
+            type: 'datetime'
+        },
+        
+        yAxis: {
+            title: {
+                text: 'Ozone Concentration'
+            },
+            labels: {
+                formatter: function () {
+                    return this.value;
+                }
             }
-        }
-    },
-    
-    tooltip: {
-        pointFormat: 'The {series.name} in this area was <b>{point.y:,.0f}</b><br/> at  {point.x}'
-    },
-    
-    plotOptions: {
-        area: {
-            marker: {
-                enabled: false,
-                symbol: 'square',
-                radius: 2,
-                states: {
-                    hover: {
-                         enabled: true
+        },
+        
+        tooltip: {
+            pointFormat: site + ' had an ozone concentration of <b>{point.y:,.0f}</b><br/>ppm in {point.x}'
+        },
+        
+        plotOptions: {
+            areaspline: {
+                marker: {
+                    enabled: false,
+                    symbol: 'circle',
+                    radius: 2,
+                    states: {
+                        hover: {
+                            enabled: true
+                        }
                     }
                 }
             }
-        }
-    },
-        series: [
-                {
-                    
-                    type: "scatter",
-                    name: "Ozone Concentration",
+        },
+        
+        series: [{
+            name: "Ozone Concentration",
                     data: ozoneConDataforGraph,
                     color: '#5CA221'
-                }
-            ]
-         });
-		
+        }]
+    });
+
 	}
 
 Template.currentsites.rendered = function () {

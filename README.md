@@ -1,7 +1,7 @@
-# DataMaps
+# Fork: DataMaps for 
 
-An instance of DataMaps is running at hnetdev.hnet.uh.edu:3000
+This is a development fork of the DataMaps repository.
 
-Page "Current Site Conditions" shows the last 12h of ozone concentration at 3 sites. Users can select a range of time to zoom in.
+Since we are planning to deploy on our own server, we should also run this with a local MongoDB instance for testing:
 
-Log files are created everyday.
+`MONGO_URL=mongodb://localhost:27017/DataMaps meteor`

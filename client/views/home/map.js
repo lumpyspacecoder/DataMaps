@@ -1,17 +1,17 @@
-Meteor.subscribe('airdata');
+Meteor.subscribe('sites');
+var mapCenter = null;
 
-
-
-Template.map.rendered = function() {
-    if (!Session.get('map'))
+Template.map.rendered = function () {
+    if (!Session.get('map')) {
         gmaps.initialize();
+    }
+    
+    gmaps.findlocation();
 
-	
     var instance = this;
-    var marker;
-        
+
     // keep updating info on map with changes in database
-    Tracker.autorun(function() {
+    Tracker.autorun(function () {
         // var locations = Air.find().fetch();        
         // _.each(locations, function(loc) {           
         //         var markerInfo= '<h3>' + loc.siteName + '</h3>' +
@@ -27,60 +27,46 @@ Template.map.rendered = function() {
         //             content: markerInfo
         //         };
         //         gmaps.addMarker(objMarker);
-            
-            // });
-        
 
-        var latLng = Geolocation.latLng();
-        console.log(latLng);
-      if (latLng){
-        
-
-      // If the marker doesn't yet exist, create it.
-      if (! marker) {
-        marker = {
-          lat:latLng.lat,
-          lng:latLng.lng,
-          title: 'CurrentLocation',
-          content: 'You are here'
-        };
-        gmaps.addMarker(marker);
-      }
-      
-  }
-        Meteor.subscribe('sitesdata', latLng);
-        var sites = Sites.find({}).fetch();
-        var contentString = null;
-        var currentSiteRef = null;
+        // });
 
 
-        _.each(sites, function(site) {   
-                contentString = document.createElement('a');
-                contentString.setAttribute('href', site.url);
-                contentString.appendChild(document.createTextNode(site.siteName));  
-                currentSiteRef = site.siteRef;
-                var aMarker = {
-                    lat: site.location[1],
-                    lng: site.location[0],
-                    title: site.siteName,
-                    content: contentString
-                };
-                
-                gmaps.addMarker(aMarker);  
-        });
+        //        Meteor.subscribe('sitesdata', );
+
+        //        var sites = Sites.find({}).fetch();
+        //
+        //        var contentString = null;
+        //       
+        //
+        //
+        //        _.each(sites, function(site) {   
+        //                contentString = document.createElement('a');
+        //                contentString.setAttribute('href', site.url);
+        //                contentString.appendChild(document.createTextNode(site.siteName));  
+        //
+        //              
+        //
+        //                var aMarker = {
+        //                    lat: site.location[1],
+        //                    lng: site.location[0],
+        //                    title: site.Name,
+        //                    content: site.Name
+        //                };
+        //                
+        //                gmaps.addMarker(aMarker);  
+        //        });
+
         Meteor.subscribe('userData');
-});
- 
-    
-}
 
+    });
+};
 
 Template.map.events({
     "click .add-favorite": function () {
-      // Set the checked property to the opposite of its current value
-      Meteor.call("addFave", latLng);
+        // Set the checked property to the opposite of its current value
+        Meteor.call('addFave', latLng);
     },
     "click .delete-favorite": function () {
-      Meteor.call("deleteFave", this._id);
+        Meteor.call('deleteFave', this._id);
     }
-  });
+});

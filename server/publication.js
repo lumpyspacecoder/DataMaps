@@ -1,16 +1,20 @@
-/*Meteor.publish('data2014', function(siteID, epoch, numOfRec) {
-    //Meteor._sleepForMs(5000);
-    var start = epoch - numOfRec*60*5;
-    return Data2014.find({$and: 
-                         [
-                            {siteID: siteID},                          
-                            {epoch: {$gt: start}},
-                            {epoch: {$lt: epoch}}
-                         ]
-                         });
-});*/
+Meteor.publish('liveData', function () {
+    var now = new Date();
+    var adayAgo = now.getTime() / 1000 - 24 * 3600;
 
-Meteor.publish('sitesdata', function(latLng) {
+    return LiveData.find({
+        'epoch': {
+            $gt: adayAgo
+        },
+        'type': 300
+    }, {
+        sort: {
+            'epoch': -1
+        }
+    });
+});
+
+Meteor.publish('siteData', function(latLng) {
     return Sites.find({'location': {
       $near:  {
         $geometry: {

@@ -1,19 +1,3 @@
-Meteor.publish('LiveFeeds', function () {
-    var now = new Date();
-    var adayAgo = now.getTime() / 1000 - 24 * 3600;
-
-    return LiveFeedMonitors.find({
-        'epoch': {
-            $gt: adayAgo
-        },
-        'type': 300
-    }, {
-        sort: {
-            'epoch': -1
-        }
-    });
-});
-
 var chokidar = Meteor.npmRequire('chokidar');
 //using winston.log instead of console log
 var winston = Meteor.npmRequire('winston');
@@ -30,7 +14,7 @@ winston.add(winston.transports.DailyRotateFile, {
 //could have the grandparentDir be the collection name and have it created if not already
 var data2insert = Meteor.bindEnvironment(function (obj) {
     var future = new Future();
-    LiveFeedMonitors.insert(obj);
+    LiveData.insert(obj);
     return future.wait();
 });
 
@@ -60,7 +44,7 @@ watcher
                 _.each(siteInfo, function (line) {
                     var epoch = parseInt((line.TheTime - 25569) * 86400) + 6 * 3600;
                     line.epoch = epoch;
-                    line.site = parentDir;
+                    line.siteRef = parentDir;
                     data2insert(line);
                 });
             });

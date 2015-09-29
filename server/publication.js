@@ -5,8 +5,22 @@ Meteor.publish('liveData', function () {
     return LiveData.find({
         'epoch': {
             $gt: adayAgo
-        },
-        'type': 300
+        }
+    }, {
+        sort: {
+            'epoch': -1
+        }
+    });
+});
+
+Meteor.publish('tceqData', function () {
+    var now = new Date();
+    var adayAgo = now.getTime() / 1000 - 24 * 3600;
+
+    return TCEQData.find({
+        'epoch': {
+            $gt: adayAgo
+        }
     }, {
         sort: {
             'epoch': -1

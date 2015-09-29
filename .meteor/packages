@@ -16,3 +16,5 @@ meteorhacks:npm
 npm-container
 semantic:ui
 flemay:less-autoprefixer
+momentjs:moment
+udondan:bulk-collection-update

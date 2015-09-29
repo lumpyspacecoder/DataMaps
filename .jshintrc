@@ -98,6 +98,7 @@
         "Mongo": false,
         "Sites": false,
         "Favorites": false,
-        "LiveData": false
+        "LiveData": false,
+        "TCEQData": false
     }
 }

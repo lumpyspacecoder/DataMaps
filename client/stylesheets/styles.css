@@ -10,6 +10,13 @@ body {
     vertical-align: middle;
 }
 
+#td{
+font-family: serif;
+}
+
+#tr{
+font-family: serif;
+}
 
 /**************Navigation Bar****************/
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:700);

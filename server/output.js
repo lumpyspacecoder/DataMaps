@@ -11,6 +11,7 @@ if (LiveFeedMonitors.find().count() === 0) {
 		"O3_press" : "756.0000",
 		"O3_stat" : "0.8666646",
 		"O3_temp" : "33.00000"
+        
 	},
 	{
 		"epoch" : 1442345699,

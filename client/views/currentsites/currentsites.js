@@ -3,8 +3,8 @@ var chart = null;
 
 function reactiveArea() {
 	  var site =  Session.get("selectedSite");
-        Meteor.subscribe('LiveData');
-		var ozoneCursor = LiveFeedMonitors.find({siteRef:site}, {limit: 240});
+        Meteor.subscribe('LiveData',site);
+		var ozoneCursor = LiveFeedMonitors.find({siteRef:site}, {limit: 240}, {sort: {epoch: 1} });
 		var ozoneConDataforGraph = [];
 		ozoneCursor.forEach(function(time) {
 			ozoneConDataforGraph.push({ x: new Date(time.epoch*1000),
@@ -17,13 +17,13 @@ function reactiveArea() {
         }
     });
     
-    chart = $('#container-chart-reactive').highcharts({
+    chart = $('#container-chart-reactive').highcharts('StockChart', {
         
-        
-                chart: {
-            type: 'areaspline'
-        },
-        
+          rangeSelector : {
+                selected : 2,
+              inputEditDateFormat: "%Y-%m-%d-%M-%s",
+              inputDateFormat: "%Y-%m-%d-%M-%s"
+            },
         title: {
             text: 'Ozone Readings at ' + site
         },
@@ -33,9 +33,9 @@ function reactiveArea() {
             href: "http://hnet.uh.edu"
             
         },
-        
         xAxis: {
-            type: 'datetime'
+            type: 'datetime',
+            ordinal: false
         },
         
         yAxis: {
@@ -49,29 +49,18 @@ function reactiveArea() {
             }
         },
         
-        tooltip: {
-            pointFormat: site + ' had an ozone concentration of <b>{point.y:,.0f}</b><br/>ppm in {point.x}'
-        },
-        
-        plotOptions: {
-            areaspline: {
-                marker: {
-                    enabled: false,
-                    symbol: 'circle',
-                    radius: 2,
-                    states: {
-                        hover: {
-                            enabled: true
-                        }
-                    }
-                }
-            }
-        },
-        
         series: [{
             name: "Ozone Concentration",
-                    data: ozoneConDataforGraph,
-                    color: '#5CA221'
+            data: ozoneConDataforGraph,
+            color: '#8CB921',
+            lineWidth : 0,
+            marker : {
+                enabled : true,
+                radius : 2
+            },
+            tooltip: {
+                valueDecimals: 2
+            }
         }]
     });
 

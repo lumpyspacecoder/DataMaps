@@ -1,6 +1,3 @@
-Router.route('/', function() {
-    this.render('main');
-});
 
 
 Router.route('/maincampus', function() {
@@ -15,4 +12,10 @@ Router.route('/currentsites', function() {
     this.render('currentsites');
 });
 
+Router.route('/tceq', function() {
+    this.render('tceq');
+});
 
+Router.route('/map', function() {
+    this.render('map');
+});

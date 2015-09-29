@@ -7,8 +7,8 @@
         return LiveFeedMonitors.find({});
     });
 
-    Meteor.publish("LiveData", function () {
-        return LiveFeedMonitors.find({});
+    Meteor.publish("LiveData", function (site) {
+        return LiveFeedMonitors.find({siteRef: site}, {limit: 240}, {sort: {epoch: 1} });
     });
 
 //console.log(LiveFeedMonitors.find({site: '2015'}).count())

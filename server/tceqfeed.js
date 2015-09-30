@@ -4,13 +4,7 @@ var csvmodule = Meteor.npmRequire('csv');
 var fs = Meteor.npmRequire('fs');
 var Future = Meteor.npmRequire('fibers/future');
 
-//using winston.log instead of console log
-var winston = Meteor.npmRequire('winston');
-
-winston.add(winston.transports.DailyRotateFile, {
-    filename: 'datamaps.log',
-    dirname: '/var/log/meteor/'
-});
+var logger = Meteor.npmRequire('winston'); // this retrieves default logger which was configured in log.js
 
 //upsert TCEQ data in DB
 var tceqDataUpsert = Meteor.bindEnvironment(function (obj) {
@@ -54,7 +48,7 @@ var TCEQwatcher = chokidar.watch('/hnet/incoming/TCEQ', {
 //parsing incoming TCEQ files
 TCEQwatcher
     .on('add', function (path) {
-        winston.log('info', 'File ', path, ' has been added.');
+        logger.info('File ', path, ' has been added.');
         var pathArray = path.split('/');
         var fileName = pathArray[pathArray.length - 1];
         fs.readFile(path, 'utf-8', function (err, output) {
@@ -65,30 +59,45 @@ TCEQwatcher
                 columns: ['siteRef', 'timeStamp', 'param', 'poc', 'method', 'units', 'value', 'flag', 'verified', 'slope', 'intercept', 'sample']
             }, function (err, siteInfo) {
                 if (err) {
-                    winston.log('error', err.message);
+                    logger.error(err.message);
                 }
+                logger.info('timer 1: ', moment());
                 _.each(siteInfo, function (line) {
                     line.fileName = fileName;
                     tceqDataUpsert(line);
                 });
             });
+            csvmodule.on('finished', function () {
+                var newPath = '/hnet/archive/TCEQ/' + fileName;
+                logger.info('timer 2: ', moment());
+            });
+        });
+        
+        fs.rename(path, newPath, function (err) {
+            if (err) {
+                if (err.code === 'EXDEV') {
+                    logger.error(err.message);
+                } else {
+                    callback(err);
+                }
+                return;
+            }
         });
     })
     .on('change', function (path) {
-        winston.log('info', 'File ', path, ' has been changed.');
+        logger.info('File ', path, ' has been changed.');
     })
     .on('addDir', function (path) {
-        winston.log('info', 'Directory ', path, ' has been added.');
+        logger.info('Directory ', path, ' has been added.');
     })
     .on('error', function (error) {
-        winston.log('error', 'Error happened', error);
+        logger.error('Error happened', error);
     })
     .on('ready', function () {
-        //Default
-        winston.log('info', 'Initial scan complete. Ready for changes');
-        //Upcert existing data, should only be used when moving in old data that should be added to the database
-        var dir = Meteor.npmRequire('node-dir');
-        //scan an existing directory
+
+        //Upcert existing data, should only be used when 
+        //starting up the server with files already in the watched folder
+        /*var dir = Meteor.npmRequire('node-dir');
         dir.files('/hnet/incoming/TCEQ', function (err, files) {
             if (err) {
                 throw err;
@@ -104,7 +113,7 @@ TCEQwatcher
                         columns: ['siteRef', 'timeStamp', 'param', 'poc', 'method', 'units', 'value', 'flag', 'verified', 'slope', 'intercept', 'sample']
                     }, function (err, siteInfo) {
                         if (err) {
-                            winston.log('error', err.message);
+                            logger.error(err.message);
                         }
                         _.each(siteInfo, function (line) {
                             line.fileName = fileName;
@@ -112,6 +121,21 @@ TCEQwatcher
                         });
                     });
                 });
+
+                var newPath = '/hnet/archive/TCEQ/' + fileName;
+                logger.info('Will move to: ', newPath);
+                fs.rename(path, newPath, function (err) {
+                    if (err) {
+                        if (err.code === 'EXDEV') {
+                            logger.error(err.message);
+                        } else {
+                            callback(err);
+                        }
+                        return;
+                    }
+                });
             });
-        });
+        });*/
+        //Default
+        logger.info('Initial scan of /hnet/incoming/TCEQ complete. Ready for changes');
     });

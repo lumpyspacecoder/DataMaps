@@ -4,13 +4,7 @@ var csvmodule = Meteor.npmRequire('csv');
 var fs = Meteor.npmRequire('fs');
 var Future = Meteor.npmRequire('fibers/future');
 
-//using winston.log instead of console log
-var winston = Meteor.npmRequire('winston');
-
-winston.add(winston.transports.DailyRotateFile, {
-    filename: 'datamaps.log',
-    dirname: '/var/log/meteor/'
-});
+var logger = Meteor.npmRequire('winston'); // this retrieves default logger which was configured in log.js
 
 //insert live data into DB
 var liveDataInsert = Meteor.bindEnvironment(function (obj) {
@@ -47,7 +41,7 @@ var liveWatcher = chokidar.watch('/hnet/incoming/2015', {
 
 liveWatcher
     .on('add', function (path) {
-        winston.log('info', 'File ', path, ' has been added.');
+        logger.info('File ', path, ' has been added.');
         var pathArray = path.split('/');
         var parentDir = pathArray[pathArray.length - 2];
         fs.readFile(path, 'utf-8', function (err, output) {
@@ -58,7 +52,7 @@ liveWatcher
                 columns: true
             }, function (err, siteInfo) {
                 if (err) {
-                    winston.log('error', err);
+                    logger.error(err);
                 }
                 _.each(siteInfo, function (line) {
                     var epoch = parseInt((line.TheTime - 25569) * 86400) + 6 * 3600;
@@ -70,15 +64,15 @@ liveWatcher
         });
     })
     .on('change', function (path) {
-        winston.log('info', 'File', path, 'has been changed');
+        logger.info('File', path, 'has been changed');
     })
     .on('addDir', function (path) {
-        winston.log('info', 'Directory', path, 'has been added');
+        logger.info('Directory', path, 'has been added');
     })
     .on('error', function (error) {
-        winston.log('error', 'Error happened', error);
+        logger.error('Error happened', error);
     })
     .on('ready', function () {
-        winston.log('info', 'Initial scan for hnetincoming2015 complete. Ready for changes');
+        logger.info('Initial scan for hnetincoming2015 complete. Ready for changes');
     });
 

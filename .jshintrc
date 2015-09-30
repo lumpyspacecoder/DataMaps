@@ -99,6 +99,7 @@
         "Sites": false,
         "Favorites": false,
         "LiveData": false,
-        "TCEQData": false
+        "TCEQData": false,
+        "AggrData": false
     }
 }

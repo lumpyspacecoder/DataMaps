@@ -1,19 +1,3 @@
-// Router.route('/', function() {
-//     this.render('main');
-// });
-//
-// Router.route('/maincampus', function() {
-//     this.render('maincampus');
-// });
-//
-// Router.route('/history', function() {
-//     this.render('history');
-// });
-//
-// Router.route('/currentsites', function() {
-//     this.render('currentsites');
-// });
-
 Router.configure({
     layoutTemplate: 'Frame',
 	loadingTemplate: 'loading',
@@ -45,8 +29,15 @@ Router.route('/history/',{
  	    this.render();
  	}
 });
+Router.route('/admin/',{
+     name: 'admin',
+     template: 'admin',
+ 	 action: function () {
+ 	    this.render();
+ 	}
+});
 Router.plugin('ensureSignedIn', {
-  only: ['currentsites','history']
+  only: ['currentsites','history','admin']
 });
 //AccountsTemplates.configureRoute('changePwd');
 AccountsTemplates.configureRoute('enrollAccount');

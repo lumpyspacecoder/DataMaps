@@ -4,6 +4,7 @@
 //adding here for yogiben:admin; might make separate client.js
 AdminConfig = {
   collections: {
-    //mapsdata: {}
+	Sites: {},
+	AggrData: {}
   }
 };

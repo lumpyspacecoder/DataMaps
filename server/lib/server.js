@@ -7,3 +7,9 @@ winston.add(winston.transports.DailyRotateFile, {
 });
 
 winston.info('Winston logs are being captured 2 ways- console and file.');
+
+AdminConfig = {
+  collections: {
+    //mapsdata: {}
+  }
+};

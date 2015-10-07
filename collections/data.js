@@ -49,45 +49,51 @@ Schemas.Sites = new SimpleSchema({
 
 Sites.attachSchema(Schemas.Sites)
 
+Schemas.Sensors = new SimpleSchema({
+	sensor: {
+	  type: Array,
+	  optional: true
+	},
+	'sensor.$':{
+	  type: Object,
+	  optional: true
+	},
+	'sensor.$.name': {
+	  type: String,
+	  optional: true
+  	},
+	'sensor.$.rdgType': {
+  	  type: String,
+	  optional: true
+  	},
+  	'sensor.$.value': {
+  	  type: Number,
+	  optional: true
+  	}
+});
 Schemas.AggrData = new SimpleSchema({
   siteId: {
     type: String
   },
   dateGMT: {
-    type: Date
+	  type: Date,
+	  optional: true
   },
   timeGMT: {
-    type: String
+	  type: String,
+	  optional: true
+  },
+  period: {
+	  type: String,
+	  optional: true
   },
   BIT: {
-  	  type: Boolean
+  	  type: Boolean,
+	  optional: true
   },
-  o3_channel: {
-  	  type: Number
-  },
-  o3_flag:{
-  	  type: String
-  },
-  o3_value: {
-  	  type: Number
-  },
-  QCref_channel: {
-  	  type: Number
-  },
-  QCref_flag: {
-  	  type: String
-  },
-  QCref_value: {
-  	  type: Number
-  },
-  QCStatus_channel: {
-  	  type: Number
-  },
-  QCStatus_flag: {
-  	  type: String
-  },
-  QCStatus_value: {
-  	  type: Number
+  sensors: {
+	  type: Schemas.Sensors,
+	  optional: true
   }
 });
 

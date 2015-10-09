@@ -15,11 +15,11 @@ meteorhacks:npm
 npm-container
 semantic:ui
 flemay:less-autoprefixer
-jhuenges:highstock
 standard-minifiers
 meteor-base
 mobile-experience
 mongo
+maazalik:highcharts
 blaze-html-templates
 session
 jquery

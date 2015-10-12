@@ -16,6 +16,8 @@ var liveDataUpsert = Meteor.bindEnvironment(function (obj) {
 		//_id : obj.site+'_'+obj.sensor+'_'+obj.epoch5min,
 		_id : obj.site+'_'+obj.epoch
 	},{
+		epoch : obj.epoch,
+		site : obj.site,
 		subTypes : obj.subTypes
 	})
     return future.wait();
@@ -47,13 +49,20 @@ var aggrDataUpsert = Meteor.bindEnvironment(function (obj) {
 var writeAggreg = Meteor.bindEnvironment(function(epoch){
 	var future = new Future();
 	var showOne = LiveData.findOne();
-	console.log('findOne')
+	// console.log('findOne')
 	console.log(showOne)
-	console.log(showOne.subTypes.metrons)
-	// LiveData.aggregate( [
-	//    	 	{ $group: { _id: "$state", totalPop: { $sum: "$pop" } } },
+	console.log(LiveData.find().count())
+	// console.log(showOne.subTypes.metrons)
+	var epoch5 = showOne.epoch;
+	var aggreg = LiveData.aggregate( [
+		{$group: {_id : { $gt : [epoch - 500000, epoch - (epoch%300000)]}}}
+		// { $group: { _id : { $regex: /^'$site+_'/ }
+	// //	{ $group: { _id : { site : "$site", epoch : "$epoch5min" }
+	//	}}
+	//	
 	//    	 	{ $match: { totalPop: { $gte: 10*1000*1000 } } }
-	// ] )
+	 ] )
+	 console.log(aggreg)
 	var future = new Future();
 });
 writeAggreg('epoch');
@@ -63,6 +72,7 @@ var write10Sec = function(arr){
 		var singleObj = makeObj(arr[k]);
 		var epoch = (((arr[k].TheTime - 25569) * 86400) + 6) * 3600;
 		singleObj.epoch = epoch - (epoch%10000); //rounding down to 10 seconds
+		//singleObj.epoch5min = epoch - (epoch%300000);
 		liveDataUpsert(singleObj);
 	};
 	writeAggreg(singleObj.epoch);

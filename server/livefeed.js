@@ -5,16 +5,25 @@ var fs = Meteor.npmRequire('fs');
 var Future = Meteor.npmRequire('fibers/future');
 
 var logger = Meteor.npmRequire('winston'); // this retrieves default logger which was configured in log.js
-
-//insert live data into DB
-var liveDataInsert = Meteor.bindEnvironment(function (obj) {
+// Meteor.startup(function(){
+// 	LiveData.createIndex({"subTypes.key": 1, "subTypes.value": 1});
+// });
+//insert live data into DB - serves as a cache for most recent day; _id is site_sensor_epoch
+//obj has site, sensor [rdgType], epoch5min, epoch10sec
+var liveDataUpsert = Meteor.bindEnvironment(function (obj) {
     var future = new Future();
-    LiveData.insert(obj);
+	LiveData.upsert({
+		//_id : obj.site+'_'+obj.sensor+'_'+obj.epoch5min,
+		_id : obj.site+'_'+obj.epoch
+	},{
+		subTypes : obj.subTypes
+	})
     return future.wait();
+	//needs to trigger new empty five minute data; aggregation for avg, etc.??
 });
 var liveDataUpdate = Meteor.bindEnvironment(function (obj) {
     var future = new Future();
-    LiveData.update(obj); //needs the right key???
+    LiveData.update(obj); 
     return future.wait();
 });
 
@@ -35,76 +44,117 @@ var aggrDataUpsert = Meteor.bindEnvironment(function (obj) {
 //     });
     return future.wait();
 });
-var makeObj = function(arr){
-	var obj = {};
-	var sensor = [];
-	var tmpVals = [];
-	var tmpFlags = [];
-	var tmpArr = [];
-	for (var i=0;i<arr.length;i++){
-		var line = arr[i];
-		for (var n in line){
-			var strng = 'HNET_CCH_HMP60_Temp';
-			console.log(typeof(strng))
-			console.log(strng.split('_')[0])
-			console.log(line[n])
-			console.log(line[n].length)
-			if(line[n].length>0){
-				var fieldsArr = line[n].split('_');
-				if(fieldsArr){
-					console.log('fieldsArr')
-					console.log(fieldsArr)
-				};
-			}; 
-			/*
-			var fields = [n,fieldsArr[n]]
-			if (fields[1] == "cor" || fields[1] == "conc"){ 
-				tmpVals.push(fields[0],line[i][1]);
-			}else if (fields[fields.length-1] == "Flag"){ 
-				tmpFlags.push(field[0],line[i][1]);
-			}else {
-				tmpArr.push(fields[1],line[i][1]);
-			};
-			var num = 0;
-			var tot = 0;
-			for (m=0;m<tmpVals.length;m++){
-				//for Time, keep last; 
-				if (tmpVals[m][0] == tmpFlags[m][0] && tmpFlags[m][1]=='K'){
-					num += 1;
-					tot += tmpVals[m][1];
-				};
-				if (num>20){
-					sensor.push[tmpVals[m][0],tot/num];
-				};
-			};
-			*/
-		};
-		console.log(die)
-	}
-	};	
-		//put everything in a new line, with flags checked, and values assigned, then calculate
-		// if (fieldname[fieldname.length-1] == "value"){ //five minute avg. on wind dir is special
-// 			tmpLine.push(fieldname[fieldname.length-2],arr[i][1]) //put all in, sort and give avgs;
-// 			//if fieldname[fieldname.length-2] //create a tmpArr per sensor, with sensor then
-// 		}else{
-//
-// 		}
-// 			obj.sensor.name = fieldname[fieldname.length-2]; //this is the pollutant or wind type
-// 			obj.sensor.value = arr[i][1]; //this is the value before avg
-// 			//write value
-// 		}
-		//split string - if last = "value"
-		// then 
-// 	}
-// }
-var calculate5minData = function(arr){ //and less than 20 don't calculate
-	var obj = makeObj(arr);
-	console.log(obj);
-	console.log(die);
-	aggrDataUpsert(obj);
+var writeAggreg = Meteor.bindEnvironment(function(epoch){
+	var future = new Future();
+	var showOne = LiveData.findOne();
+	console.log('findOne')
+	console.log(showOne)
+	console.log(showOne.subTypes.metrons)
+	// LiveData.aggregate( [
+	//    	 	{ $group: { _id: "$state", totalPop: { $sum: "$pop" } } },
+	//    	 	{ $match: { totalPop: { $gte: 10*1000*1000 } } }
+	// ] )
+	var future = new Future();
+});
+writeAggreg('epoch');
+//LiveData.remove({});
+var write10Sec = function(arr){
+	for (var k=0;k<arr.length;k++){
+		var singleObj = makeObj(arr[k]);
+		var epoch = (((arr[k].TheTime - 25569) * 86400) + 6) * 3600;
+		singleObj.epoch = epoch - (epoch%10000); //rounding down to 10 seconds
+		liveDataUpsert(singleObj);
+	};
+	writeAggreg(singleObj.epoch);
 };
-//starting watcher for live incoming data --/Users/dprice3/testHNET/
-//var liveWatcher = chokidar.watch('/hnet/incoming/2015', {
+var siteTableAlpha = function(alpha){
+	//have it return from the sites db
+	//var sites = 
+	//return sites[alpha]
+	return '481670571'
+};
+var makeObj = function(keys){ //pass newVal==true for preallocate
+	var obj = {};
+	obj.subTypes = {};
+	obj.subTypes['metrons'] = {}; 
+	var metron = [];
+	for (var key in keys){
+		var subKeys = key.split('_');
+		if (subKeys.length > 1){  //skipping 'TheTime'
+			var alphaSite = subKeys[0]+'_'+subKeys[1];
+			var metric = subKeys[subKeys.length-1]; //i.e. conc., direction, etc.
+			var metrized = key.replace(alphaSite+'_','');
+			var metron = metrized.replace('_'+metric,''); //wind, O3, etc.
+			val = keys[key]
+			if (!obj.subTypes.metrons[metron]){
+				obj.subTypes.metrons[metron] = [{metric:metric,val:val}];
+			} else {
+				obj.subTypes.metrons[metron].push({metric:metric,val:val});
+			}
+			if (!obj.site){
+				obj.site = siteTableAlpha(alphaSite);
+			}
+		};
+	};
+//needs to return shape from schema in data.js (which must be accessible client and server)
+	return obj
+};	
+/*
+{ subTypes: { metrons: { O3: 
+									[ { metric: 'conc', val: 20.78 }, 
+										{ metric: 'Flag', val: 1 } 
+									], 
+						RMY_Wind: [ { metric: 'Direction', val: 'test' },
+									{ metric: 'Flag', val: '' },
+									{ metric: 'Speed', val: '' } 
+								], 
+						HMP60: [{ metric: 'Flag', val: '' },
+								 { metric: 'RH', val: '' },
+								 { metric: 'Temp', val: '' }
+								] 
+} },
+  site: '481670571',
+  epoch10sec: 5196234320000 }
+
+		// console.log(singleObj)
+// 		console.log(singleObj.subTypes)
+// 		console.log(singleObj.subTypes.metrons)
+// 		console.log(singleObj.subTypes.metrons.O3)
+// 		console.log(singleObj.subTypes.metrons.O3[1])
+//console.log(singleObj.subTypes.metrons.O3[1].metric)
+		// singleObj.epoch10sec = epoch - (epoch%10000);
+		// obj.epoch5min = epoch - (epoch%300000);
+		// obj.epoch1hr = epoch - (epoch%3600000);
+		// obj.epoch1day = epoch - (epoch%86400000);
+
+
+FOR SEARCHING ON OBJ SUBTYPES http://learnmongodbthehardway.com/schema/chapter5/
+var col = db.getSisterDB("supershot").images;
+col.find({ metadata: { $all: [
+            { "$elemMatch" : { key : "MIME type", value: "image/jpeg" } },
+            { "$elemMatch" : { key: "Flash", value: "No, auto" } }
+          ]}
+       }).toArray();
+*/
+
+var rdFile = function(path){
+    var pathArray = path.split('/');
+    var parentDir = pathArray[pathArray.length - 2];
+    var tempArray = [];
+    fs.readFile(path, 'utf-8', function (err, output) {
+        csvmodule.parse(output, {
+            delimiter: ',',
+            rowDelimiter: '\r',
+            auto_parse: true,
+            columns: true
+        }, function (err, siteInfo) {
+            if (err) {
+                logger.error(err);
+            };
+			write10Sec(siteInfo);
+		});
+	});
+};
 var liveWatcher = chokidar.watch('/Users/dprice3/testHNET', {
     ignored: /[\/\\]\./,
     ignoreInitial: true,
@@ -115,60 +165,12 @@ var liveWatcher = chokidar.watch('/Users/dprice3/testHNET', {
 liveWatcher
     .on('add', function (path) {
         logger.info('File ', path, ' has been added.');
-        var pathArray = path.split('/');
-        var parentDir = pathArray[pathArray.length - 2];
-        fs.readFile(path, 'utf-8', function (err, output) {
-            csvmodule.parse(output, {
-                delimiter: ',',
-                rowDelimiter: '\r',
-                auto_parse: true,
-                columns: true
-            }, function (err, siteInfo) {
-                if (err) {
-                    logger.error(err);
-                }
-                _.each(siteInfo, function (line) {
-                    var epoch = parseInt((line.TheTime - 25569) * 86400) + 6 * 3600;
-                    line.epoch = epoch;
-                    line.siteRef = parentDir;
-                    liveDataInsert(line);
-                });
-            });
-        });
+		rdFile(path);
     })
 	.on('change', function (path) {
-	        logger.info('File', path, 'has been changed');
-	        var pathArray = path.split('/');
-	        var parentDir = pathArray[pathArray.length - 2];
-	        var tempArray = [];
-	        fs.readFile(path, 'utf-8', function (err, output) {
-	            csvmodule.parse(output, {
-	                delimiter: ',',
-	                rowDelimiter: '\r',
-	                auto_parse: true,
-	                columns: true
-	            }, function (err, siteInfo) {
-	                if (err) {
-	                    logger.error(err);
-	                };
-					var epochCnt = null;
-	                _.each(siteInfo, function (line) {
-	                    var epoch = parseInt((line.TheTime - 25569) * 86400) + 6 * 3600;
-	                    line.epoch = epoch;
-						if (!epochCnt){epochCnt=epoch}
-	                    line.siteRef = parentDir;
-	                    	//if (epoch % 300 == 0 && tempArray.length>0) {
-						if ((epoch - epochCnt)>490){
-	                        calculate5minData(tempArray);
-	                        tempArray = [];
-							epochCnt = epoch;
-						};
-	                    tempArray.push(line);
-	                    //liveDataUpdate(line); //not sure what's the logic here
-	                });
-	            });
-	        });
-	    })
+		logger.info('File', path, 'has been changed');
+		rdFile(path);
+	})
     .on('addDir', function (path) {
         logger.info('Directory', path, 'has been added');
     })

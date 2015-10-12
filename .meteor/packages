@@ -4,7 +4,6 @@
 # 'meteor add' and 'meteor remove' will edit this file for you,
 # but you can also edit it by hand.
 
-meteor-platform
 mdg:geolocation
 iron:router
 maazalik:highcharts
@@ -23,3 +22,17 @@ alanning:roles
 yogiben:admin
 dburles:collection-helpers
 fortawesome:fontawesome
+standard-minifiers
+meteor-base
+mobile-experience
+mongo
+blaze-html-templates
+session
+jquery
+tracker
+logging
+reload
+random
+ejson
+spacebars
+check

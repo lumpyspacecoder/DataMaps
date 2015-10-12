@@ -3,53 +3,64 @@ Favorites = new Mongo.Collection('favorites');
 LiveData = new Mongo.Collection('livedata');
 AggrData = new Mongo.Collection('aggregatedata5min');
 TCEQData = new Mongo.Collection('tceqdata');
-//console.log(TCEQData.simpleSchema()); //to read if there is any schema; I think you might have to reload
 Schemas = {};
-
+//for AQSID, remove the _ as part of the validation?? make ID combination of others??
 Schemas.Sites = new SimpleSchema({
-  name: {
-    type: String,
-    max: 60
-  },
-  description: {
-    type: String,
-    autoform: {
-      rows: 5
-    }
-  },
-  createdAt: {
-    type: Date,
-    label: 'Date',
-    autoValue: function () {
-      if (this.isInsert) {
-        return new Date();
-      }
-    }
-  },
-  createdBy: {
-    type: String,
-    regEx: SimpleSchema.RegEx.Id,
-    autoValue: function () {
-      if (this.isInsert) {
-        return Meteor.userId();
-      }
-    },
-    autoform: {
-      options: function () {
-        _.map(Meteor.users.find().fetch(), function (user) {
-          return {
-            label: user.emails[0].address,
-            value: user._id
-          };
-        });
-      }
-    }
+	_id: {
+		type: String,
+		max: 60
+	},
+	AQSID: {
+		type: String,
+		max: 20
+	},
+	CAMSID: {
+		type: String,
+		max: 6
+	},
+	AlphaID: {
+		type: String,
+		max: 20
+	},
+	description: {
+	  type: String,
+	  autoform: {
+	    rows: 5
+	  }
+	},
+	createdAt: {
+	  type: Date,
+	  label: 'Date',
+	  autoValue: function () {
+	    if (this.isInsert) {
+	      return new Date();
+	    }
+	  }
+	},
+	createdBy: {
+	  type: String,
+	  regEx: SimpleSchema.RegEx.Id,
+	  autoValue: function () {
+	    if (this.isInsert) {
+	      return Meteor.userId();
+	    }
+	  },
+	autoform: {
+	  options: function () {
+	    _.map(Meteor.users.find().fetch(), function (user) {
+	      return {
+	        label: user.emails[0].address,
+	        value: user._id
+	      };
+	    });
+	  }
+	}
   }
 });
 
 Sites.attachSchema(Schemas.Sites)
 
-Schemas.Sensors = new SimpleSchema({
+Schemas.SensorRdgs = new SimpleSchema({
 	sensor: {
 	  type: Array,
 	  optional: true
@@ -92,7 +103,7 @@ Schemas.AggrData = new SimpleSchema({
 	  optional: true
   },
   sensors: {
-	  type: Schemas.Sensors,
+	  type: Schemas.SensorRdgs,
 	  optional: true
   }
 });

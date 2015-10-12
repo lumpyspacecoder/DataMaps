@@ -1,0 +1,49 @@
+new flow:
+
+data schemes are in "collections" - have to be accessible in both parts
+
+_id should be aggregates for better searching
+$regex (left and case sensitive) better than search by compound index (or single index) if on a range that begins with same string - like epoch added to a siteID
+https://www.mongodb.com/presentations/mongodb-time-series-data-part-2-analyzing-time-series-data-using-aggregation-framework?jmp=docs&_ga=1.50857388.408211846.1415475078 - slide 9
+http://docs.mongodb.org/manual/reference/operator/aggregation/minute/#exp._S_minute
+
+
+should preallocate before creating object - can preallocate by different amounts
+
+$cond lets you account for flags - http://docs.mongodb.org/manual/reference/operator/aggregation/cond/
+
+split the keys - if first part matches the second, then work on flag logic, etc; (no need to get penultimate)
+
+capped collection - let's it roll the live data out of existence, or write it to glacier during pipeline
+
+
+
+The file names are unique and all start with a date/time so that they will sort correctly.  Embedded in the file name is the resolution of the data - either 5-minute (5m), or one-hour (1h) resolution.
+
+The contents of the files are plain ASCII, pipe-delimited with a Unix-style new line at the end of each record.  Below is the first record out of the sample 1-hour resolution file that is attached:
+
+48_201_1034|20130219230000|42601|1|99|8|1.58887|VAL|N|1|0|9
+
+The first field (48_201_1034) is a site identifier consisting of the EPA state and county codes of where the site is located along with the TCEQ site number.  48 is the EPA code for Texas, 201 is the EPA code for Harris county.
+
+The second field (20130219230000) is the date and time in UTC the sample was collected.  All of our data is collected and stored in UTC.  Our policy is that the date/time stamp refers to the beginning of the sample period.  This date/time is in an ISO format starting with the year down to the second.
+
+The third field (42601) is the EPA parameter number of what is being measured.  42601 is the EPA parameter number for NO.
+
+The fourth field (1) is the Parameter Occurrence Code (POC) of the instrument that took the measurement.  Be aware that TCEQ has many stations with co-located monitors measuring exactly the same things and the only way to tell them apart is with the POC.  It requires a unique site, parameter, and POC combination to differentiate fully between data samples.
+
+The fifth field (99) is the EPA Method Code.  The method code can be used to determine the actual methodology used to take a specific measurement.  The EPA assigns this code to each instrument that is certified by the EPA.  Method codes are not unique and are used (and reused) by the EPA to specify very different measurement methodologies depending upon the actual instrument.
+
+The sixth field (8) is the EPA Units code.  8 is the EPA units code for parts per billion (ppb).
+
+The seventh field (1.58887) is the actual value of the measurement in the units defined in field 6.  Please note that even though this shows up with 5 decimal places, the actual accuracy of the measurements is much less than this -- generally only 1 - 2 ppb for most instruments.
+
+The eighth field (VAL) is a flag that indicates whether the data is ambient or not.  The TCEQ uses the flag "VAL" to indicate normal ambient data.  There are 40 or 50 different flags that can be attached to the data.  Any data that is flagged as non-ambient will have the seventh field value set to -9999.  Anytime -9999 is seen as a measurement value, that means the data is not ambient.
+
+The ninth field (N) is a flag that indicates whether or not the data has been "validated" by a human.  This flag has no effect on the quality of the data other than indicating that someone has reviewed the data and is satisfied that the data represents actual conditions (whatever they may be).
+
+The tenth field (1) is the slope used to convert a voltage measurement into engineering units.  A slope of 1 indicates that no conversion occurs.  You normally only see a slope other than 1 attached to 5-minute resolution samples of parameters that are automatically calibrated (O3, CO, SO2, H2S, NO, NO2, NOx, NOy).
+
+The eleventh field (0) is the intercept used to convert a voltage measurement into engineering units.  An intercept of 0 is normal for hourly averages.  You normally only see an intercept other than 0 attached to 5-minute resolution samples of parameters that are automatically calibrated (O3, CO, SO2, H2S, NO, NO2, NOx, NOy).
+
+The twelfth and final field (9) is the number of samples making up the measurement.  For 5-minute resolution data, this will always be 1.  For one-hour resolution data, we must measure at least 9 ambient samples each hour in order to calculate an ambient hourly average. Any measurement with less than 9 samples will never be flagged as ambient (and will always be shown as -9999).

@@ -45,14 +45,6 @@ function reactiveArea() {
 //                }
 //            }
         },
-      plotOptions: {
-				series: {					
-					turboThreshold: 10000,
-					marker: {
-                    	radius: 2
-                	}
-				}
-			},
         
         series: [{
             name: "Ozone Concentration",
@@ -65,7 +57,7 @@ function reactiveArea() {
                 point: {
                     events: {
                         select: function() {
-                            var selectedPointsStr = "";                            
+                            var selectedPointsStr = "";
                             // when is the chart object updated? after this function finshes?
                             var chart = this.series.chart;
                             var selectedPoints = chart.getSelectedPoints();
@@ -73,17 +65,34 @@ function reactiveArea() {
                             $.each(selectedPoints, function(i, value) {
                     			selectedPointsStr += "<br>"+value.category;
 		                    });
+		                  
                             
-                            $report.html(selectedPointsStr); 
+                            $report.html(selectedPointsStr);
                             
                              // button handler
                             $('#button').click(function () {
                                 var result = prompt("Enter the updated value for your selection:")
-                                chart.series[0].data[0].update(result);
+                                var num1 = parseInt(result);
+                                  $.each(selectedPoints, function(i,value) {
+                    			            this.update(num1);
+                    			            
+		                              });
+
                             });
-                          
-                        },
-                        update: function() {}
+                           $('#button2').click(function () {
+                                  $.each(selectedPoints, function(i,value) {
+                    			            this.remove();
+                    			            
+		                              });
+
+                            });
+                        }
+                        // update: function() {
+                        //   if (!confirm('Do you want to set the point\'s value to ' + event.options + '?')) {
+                        //         return false;
+                        //   }
+                        // }
+                        
                     }
                 }
             }

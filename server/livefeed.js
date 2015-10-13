@@ -46,6 +46,15 @@ var aggrDataUpsert = Meteor.bindEnvironment(function (obj) {
 //     });
     return future.wait();
 });
+fiveMinuteresult = new Mongo.Collection('fiveMinute');
+var pipeline = [
+	{ $unwind: "$subTypes" },
+	{$group: {_id: null, epoch: {$sum: 1}}}
+	
+];
+var fiveMinuteresult = LiveData.aggregate(pipeline, {explain: true});
+console.log("Explain Outside:", JSON.stringify(fiveMinuteresult[0]), null, 2);
+console.log(fiveMinuteresult)
 var writeAggreg = Meteor.bindEnvironment(function(epoch){
 	var future = new Future();
 	var showOne = LiveData.findOne();
@@ -53,19 +62,21 @@ var writeAggreg = Meteor.bindEnvironment(function(epoch){
 	console.log(showOne)
 	console.log(LiveData.find().count())
 	// console.log(showOne.subTypes.metrons)
-	var epoch5 = showOne.epoch;
+	var epoch = showOne.epoch;
 	var aggreg = LiveData.aggregate( [
-		{$group: {_id : { $gt : [epoch - 500000, epoch - (epoch%300000)]}}}
+		{$group: {_id: null, resTime: {$sum: "$epoch"}}}
+		//{$group: {_id : { $gt : [epoch - 500000, epoch - (epoch%300000)]}}}
 		// { $group: { _id : { $regex: /^'$site+_'/ }
 	// //	{ $group: { _id : { site : "$site", epoch : "$epoch5min" }
 	//	}}
 	//	
 	//    	 	{ $match: { totalPop: { $gte: 10*1000*1000 } } }
-	 ] )
+	 ],{explain: true} );
 	 console.log(aggreg)
+	 console.log("Explain Report:", JSON.stringify(aggreg[0]), null, 2);
 	var future = new Future();
 });
-writeAggreg('epoch');
+//writeAggreg('epoch');
 //LiveData.remove({});
 var write10Sec = function(arr){
 	for (var k=0;k<arr.length;k++){

@@ -1,5 +1,6 @@
 
-var chart = null;
+
+var selectedPoints = null;
 
 function reactiveArea() {
 	  var site =  Session.get("selectedSite");
@@ -19,6 +20,19 @@ function reactiveArea() {
     });
     
   var chart = $('#container-chart-reactive').highcharts({
+        exporting: {
+            chartOptions: { // specific options for the exported image
+                plotOptions: {
+                    series: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    }
+                }
+            },
+            scale: 3,
+            fallbackToExportServer: false
+        },
         chart:{
             zoomType: 'x'
         },
@@ -60,7 +74,7 @@ function reactiveArea() {
                             var selectedPointsStr = "";
                             // when is the chart object updated? after this function finshes?
                             var chart = this.series.chart;
-                            var selectedPoints = chart.getSelectedPoints();
+                            selectedPoints = chart.getSelectedPoints();
                             selectedPoints.push(this);
                             $.each(selectedPoints, function(i, value) {
                     			selectedPointsStr += "<br>"+value.category;
@@ -69,23 +83,7 @@ function reactiveArea() {
                             
                             $report.html(selectedPointsStr);
                             
-                             // button handler
-                            $('#button').click(function () {
-                                var result = prompt("Enter the updated value for your selection:")
-                                var num1 = parseInt(result);
-                                  $.each(selectedPoints, function(i,value) {
-                    			            this.update(num1);
-                    			            
-		                              });
-
-                            });
-                           $('#button2').click(function () {
-                                  $.each(selectedPoints, function(i,value) {
-                    			            this.remove();
-                    			            
-		                              });
-
-                            });
+                            
                         }
                         // update: function() {
                         //   if (!confirm('Do you want to set the point\'s value to ' + event.options + '?')) {
@@ -98,9 +96,11 @@ function reactiveArea() {
             }
         }
     });
-
+                         
    
 	}
+	
+
 
 Template.currentsites.rendered = function () {
     
@@ -109,3 +109,36 @@ Template.currentsites.rendered = function () {
     });
 }
 
+Template.currentsites.events({
+  "click #button2": function(e){
+    var points = selectedPoints;
+			
+			if (!points.length) alert ('No points selected. Click a point to select it. Control click to select multiple points');
+			
+			jQuery.each(points, function(i, point) {
+				point.remove();
+			});
+			
+  },
+  "click #button": function(e){
+    var points = selectedPoints;
+			
+			if (!points.length) alert ('No points selected. Click a point to select it. Control click to select multiple points');
+			var result = prompt("Enter the updated value for your selection:")
+      var num1 = parseInt(result);
+      jQuery.each(points, function(i, point) {
+            point.update(num1);
+            
+       });
+			
+			
+  },
+  "click #export": function(e){
+        var chart = $('#container-chart-reactive').highcharts();
+        chart.exportChart({
+            type: 'application/pdf',
+            filename: 'my-pdf'
+        });
+    }
+
+});

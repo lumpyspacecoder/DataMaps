@@ -17,6 +17,7 @@ var liveDataUpsert = Meteor.bindEnvironment(function (obj) {
 		_id : obj.site+'_'+obj.epoch
 	},{
 		epoch : obj.epoch,
+		epoch5min : obj.epoch5min,
 		site : obj.site,
 		subTypes : obj.subTypes
 	})
@@ -46,15 +47,47 @@ var aggrDataUpsert = Meteor.bindEnvironment(function (obj) {
 //     });
     return future.wait();
 });
+
 fiveMinuteresult = new Mongo.Collection('fiveMinute');
 var pipeline = [
-	{ $unwind: "$subTypes" },
-	{$group: {_id: null, epoch: {$sum: 1}}}
+	{$match: {site: '481670571'}},
+	{$unwind: '$subTypes.metrons'},
+	{$group: {_id: '$epoch5min', totalO3: { $sum: "$subTypes.metrons.O3[0].val" }}}
 	
-];
-var fiveMinuteresult = LiveData.aggregate(pipeline, {explain: true});
-console.log("Explain Outside:", JSON.stringify(fiveMinuteresult[0]), null, 2);
-console.log(fiveMinuteresult)
+    ];
+// var pipeline2 = [
+// 	{$match: "$site" : site}
+// 	{ $unwind: "$subTypes" },
+// 	{$group: {_id: null, epoch: {$sum: 1}}}
+//
+// ];avg:{$avg:'$' }//, subTypes: '$subTypes'
+var sub = this; //not sure why to do this
+console.log('afd')
+console.log(LiveData.findOne().subTypes.metrons.O3[0].val);
+LiveData.aggregate(pipeline,
+	Meteor.bindEnvironment(
+		function(err,result){
+			_.each(result,function(e){
+				//fiveMinuteresult.insert({_id:null,avg:'sdaf'})
+				console.log(e)
+				// sub.insert("fiveMinuteresult",e.epoch5min, {
+// 					key: e.site,
+// 					count: e.count
+// 				});
+			});
+			//console.log(test)
+			//sub.ready();
+		},
+		function(error) {
+			Meteor._debug("error during aggregation: "+error);
+		}
+	)
+);
+console.log('five')
+console.log(fiveMinuteresult.find().count())
+// var fiveMinuteresult = LiveData.aggregate(pipeline, {explain: true});
+// console.log("Explain Outside:", JSON.stringify(fiveMinuteresult[0]), null, 2);
+// console.log(fiveMinuteresult)
 var writeAggreg = Meteor.bindEnvironment(function(epoch){
 	var future = new Future();
 	var showOne = LiveData.findOne();
@@ -64,7 +97,7 @@ var writeAggreg = Meteor.bindEnvironment(function(epoch){
 	// console.log(showOne.subTypes.metrons)
 	var epoch = showOne.epoch;
 	var aggreg = LiveData.aggregate( [
-		{$group: {_id: null, resTime: {$sum: "$epoch"}}}
+		{$group: {_id: null, resTime: {$sum: "$subTypes.metrons.O3.conc"}}}
 		//{$group: {_id : { $gt : [epoch - 500000, epoch - (epoch%300000)]}}}
 		// { $group: { _id : { $regex: /^'$site+_'/ }
 	// //	{ $group: { _id : { site : "$site", epoch : "$epoch5min" }
@@ -83,7 +116,7 @@ var write10Sec = function(arr){
 		var singleObj = makeObj(arr[k]);
 		var epoch = (((arr[k].TheTime - 25569) * 86400) + 6) * 3600;
 		singleObj.epoch = epoch - (epoch%10000); //rounding down to 10 seconds
-		//singleObj.epoch5min = epoch - (epoch%300000);
+		singleObj.epoch5min = epoch - (epoch%300000);
 		liveDataUpsert(singleObj);
 	};
 	writeAggreg(singleObj.epoch);

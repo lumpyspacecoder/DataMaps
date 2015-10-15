@@ -49,21 +49,34 @@ var aggrDataUpsert = Meteor.bindEnvironment(function (obj) {
 });
 
 fiveMinuteresult = new Mongo.Collection('fiveMinute');
+var siteId = '481670571'
+var timeChosen = '519626' //first part of relevant epoch lookup
+var siteChosen = new RegExp('^'+siteId+'_'+timeChosen)
 var pipeline = [
-	{$match: {site: '481670571'}},
-	{$unwind: '$subTypes.metrons'},
-	{$group: {_id: '$epoch5min', totalO3: { $sum: "$subTypes.metrons.O3[0].val" }}}
+	{$match: {_id: {$regex:siteChosen}}},
+//	{$match: {site: siteChosen}},
+//	{ $unwind: "$subTypes" },
+//	{$project: {'subTypes':1,'epoch5min':1,'epoch':1}},
+//	
+	{$project: {epoch5min:1,epoch:1,'subTypes':1}},//subTypes:{metrons:{O3:1}}}},
+//	{$unwind: '$subTypes'},
+	{$group: {_id: '$epoch5min',avg:{$avg:'$epoch'}}}
+	
+	
+	
 	
     ];
 // var pipeline2 = [
 // 	{$match: "$site" : site}
-// 	{ $unwind: "$subTypes" },
-// 	{$group: {_id: null, epoch: {$sum: 1}}}
+// 	
+// 	{$group: {_id: '$epoch5min'}}
 //
 // ];avg:{$avg:'$' }//, subTypes: '$subTypes'
 var sub = this; //not sure why to do this
+
 console.log('afd')
-console.log(LiveData.findOne().subTypes.metrons.O3[0].val);
+console.log(LiveData.findOne().subTypes.metrons.O3[0].metric);
+//console.log(die)
 LiveData.aggregate(pipeline,
 	Meteor.bindEnvironment(
 		function(err,result){
@@ -85,6 +98,7 @@ LiveData.aggregate(pipeline,
 );
 console.log('five')
 console.log(fiveMinuteresult.find().count())
+
 // var fiveMinuteresult = LiveData.aggregate(pipeline, {explain: true});
 // console.log("Explain Outside:", JSON.stringify(fiveMinuteresult[0]), null, 2);
 // console.log(fiveMinuteresult)
@@ -150,6 +164,7 @@ var makeObj = function(keys){ //pass newVal==true for preallocate
 			}
 		};
 	};
+	console.log(obj)
 //needs to return shape from schema in data.js (which must be accessible client and server)
 	return obj
 };	

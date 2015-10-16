@@ -54,14 +54,26 @@ var timeChosen = '519626' //first part of relevant epoch lookup
 var siteChosen = new RegExp('^'+siteId+'_'+timeChosen)
 var pipeline = [
 	{$match: {_id: {$regex:siteChosen}}},
-//	{$match: {site: siteChosen}},
 //	{ $unwind: "$subTypes" },
-//	{$project: {'subTypes':1,'epoch5min':1,'epoch':1}},
 //	
-	{$project: {epoch5min:1,epoch:1,'subTypes':1}},//subTypes:{metrons:{O3:1}}}},
-//	{$unwind: '$subTypes'},
-	{$group: {_id: '$epoch5min',avg:{$avg:'$epoch'}}}
-	
+	{$project: {epoch5min:1,epoch:1,'subTypes.metrons':1}}, //,metr: '$subTypes.metrons.O3.val'}},
+	{$group: {_id:'$epoch5min', metrs:{$push: '$subTypes.metrons'}}},
+	{$project: {metrTypes: {$map: { input: "$metrs", as: 'mTypes', in: "$$mTypes"}}}},
+	{$unwind: '$metrTypes'},
+	{$project: {'mTypes':1}}
+	//{$project: {mT: {$map: { input: "$metrTypes",as: 'mNames',in: "$$metrTypes.mTypes"}}}}
+	// $let:{
+	// 	vars: { metrTypes: {$unwind: '$metrs'} },
+	// 	in: <expression>
+	//     }
+//	{$unwind: '$metrs'},
+//	{$group: {metronTypes: '$metrs'}}
+//	{$unwind: '$subTypes.metrons.O3'}
+	//{$project: {'subTypes.metrons.*':1}}
+	//{$group: {_id: '$epoch5min',avg:{$avg:'$metr'}}}
+	//{$group: {_id: '$subTypes.metrons',avg:{$avg:'$epoch'}}},
+	//{$unwind: '$subTypes.metrons'},
+	//{$project: {metr: '$subTypes.metrons.O3.val'}}  //.O3.val'}}
 	
 	
 	
@@ -82,7 +94,7 @@ LiveData.aggregate(pipeline,
 		function(err,result){
 			_.each(result,function(e){
 				//fiveMinuteresult.insert({_id:null,avg:'sdaf'})
-				console.log(e)
+				console.log(e)//.metr[0])
 				// sub.insert("fiveMinuteresult",e.epoch5min, {
 // 					key: e.site,
 // 					count: e.count

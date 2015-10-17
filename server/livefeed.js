@@ -55,42 +55,51 @@ var siteChosen = new RegExp('^'+siteId+'_'+timeChosen)
 var pipeline = [
 	{$match: {_id: {$regex:siteChosen}}},
 	{$project: {epoch5min:1,epoch:1,site:1,'subTypes.metrons':1}}, 
-	{$group: {_id:'$epoch5min',site:{$last:"$site"},nuisance:{$push:"$subTypes.metrons"},nuisum:{$sum:1}}}
+	{$group: {_id:'$epoch5min',site:{$last:"$site"},nuisance:{$push:"$subTypes.metrons"}}}
     ];
+/*
+can we use this for no matter the time period??	
+	perhaps pick up standard deviation, and variance at same tim
+average = function(a) {
+  var r = {mean: 0, variance: 0, deviation: 0}, t = a.length;
+  for(var m, s = 0, l = t; l--; s += a[l]);
+  for(m = r.mean = s / t, l = t, s = 0; l--; s += Math.pow(a[l] - m, 2));
+  return r.deviation = Math.sqrt(r.variance = s / t), r;
+}
+	*/
 LiveData.aggregate(pipeline,
 	Meteor.bindEnvironment(
 		function(err,result){
 			_.each(result,function(e){
-				var min5obj = {};
-				min5obj._id = e._id;
-				min5obj.site = e.site;
-				metrons = e.nuisance;
-				subSums = e.nuisum; //have to break it out per 
+				var subObj = {}
+				subObj._id = e._id;
+				subObj.site = e.site;
+				metrons = e.nuisance; 
 				for (i=0;i<metrons.length;i++){
 					for ( var newkey in metrons[i]){
 						if(metrons[i][newkey][1]['metric']=="Flag" && metrons[i][newkey][1]['val']==1){
-							if(!min5obj[newkey]){
-								min5obj[newkey]=metrons[i][newkey][0]['val'];
-								min5obj['numValid'] = 1;
+							if(!subObj[newkey]){
+								subObj[newkey]={'sum':metrons[i][newkey][0]['val'],'avg':metrons[i][newkey][0]['val'],'variance':0.0,'stdDev':0.0,'numValid':parseInt(1),'Flag':1};
 							}else{
-								min5obj[newkey]+=metrons[i][newkey][0]['val'];
-								min5obj['numValid'] += 1;
-							}
-							if ((min5obj['numValid']/subSums)>.75){
-								min5obj[newkey]=min5obj[newkey]/min5obj['numValid']
-							//why aren't the numValid higher?
-								//should insert min5obj into collection here
-								console.log(min5obj)
-							}
-						}
- 					}
-				}
+								subObj[newkey]['numValid'] += 1;
+								subObj[newkey]['sum']+=metrons[i][newkey][0]['val'];  //holds sum until end
+								subObj[newkey]['avg'] = subObj[newkey]['sum']/subObj[newkey]['numValid'];
+								subObj[newkey]['variance'] += Math.pow((metrons[i][newkey][0]['val']- subObj[newkey]['avg']), 2);
+							};
+							subObj[newkey]['stdDev']=Math.sqrt(subObj[newkey]['variance']);
+							if ((subObj[newkey]['numValid']/i)<.75){ 
+								subObj[newkey]['Flag']=0;//should discuss how to use
+							};
+						};
+ 					};
+				};
+				//aggrDataUpsert(subObj); //have to wait to do validation in schema
 			});
+			
 		},
 		function(error) {
 			Meteor._debug("error during aggregation: "+error);
-		},
-		{explain:true}
+		}
 	)
 );
 

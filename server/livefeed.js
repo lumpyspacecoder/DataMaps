@@ -33,6 +33,7 @@ var liveDataUpdate = Meteor.bindEnvironment(function (obj) {
 //overwrite 5 minute data in DB
 var aggrDataUpsert = Meteor.bindEnvironment(function (obj) {
     var future = new Future();
+	AggrData.upsert(obj)
     // AggrData.upsert({
 //         // Selector
 //         timeStamp: obj.theTime,
@@ -48,95 +49,51 @@ var aggrDataUpsert = Meteor.bindEnvironment(function (obj) {
     return future.wait();
 });
 
-fiveMinuteresult = new Mongo.Collection('fiveMinute');
 var siteId = '481670571'
 var timeChosen = '519626' //first part of relevant epoch lookup
 var siteChosen = new RegExp('^'+siteId+'_'+timeChosen)
 var pipeline = [
 	{$match: {_id: {$regex:siteChosen}}},
-//	{ $unwind: "$subTypes" },
-//	
-	{$project: {epoch5min:1,epoch:1,'subTypes.metrons':1}}, //,metr: '$subTypes.metrons.O3.val'}},
-	{$group: {_id:'$epoch5min', metrs:{$push: '$subTypes.metrons'}}},
-	{$project: {metrTypes: {$map: { input: "$metrs", as: 'mTypes', in: "$$mTypes"}}}},
-	{$unwind: '$metrTypes'},
-	{$project: {'mTypes':1}}
-	//{$project: {mT: {$map: { input: "$metrTypes",as: 'mNames',in: "$$metrTypes.mTypes"}}}}
-	// $let:{
-	// 	vars: { metrTypes: {$unwind: '$metrs'} },
-	// 	in: <expression>
-	//     }
-//	{$unwind: '$metrs'},
-//	{$group: {metronTypes: '$metrs'}}
-//	{$unwind: '$subTypes.metrons.O3'}
-	//{$project: {'subTypes.metrons.*':1}}
-	//{$group: {_id: '$epoch5min',avg:{$avg:'$metr'}}}
-	//{$group: {_id: '$subTypes.metrons',avg:{$avg:'$epoch'}}},
-	//{$unwind: '$subTypes.metrons'},
-	//{$project: {metr: '$subTypes.metrons.O3.val'}}  //.O3.val'}}
-	
-	
-	
+	{$project: {epoch5min:1,epoch:1,site:1,'subTypes.metrons':1}}, 
+	{$group: {_id:'$epoch5min',site:{$last:"$site"},nuisance:{$push:"$subTypes.metrons"},nuisum:{$sum:1}}}
     ];
-// var pipeline2 = [
-// 	{$match: "$site" : site}
-// 	
-// 	{$group: {_id: '$epoch5min'}}
-//
-// ];avg:{$avg:'$' }//, subTypes: '$subTypes'
-var sub = this; //not sure why to do this
-
-console.log('afd')
-console.log(LiveData.findOne().subTypes.metrons.O3[0].metric);
-//console.log(die)
 LiveData.aggregate(pipeline,
 	Meteor.bindEnvironment(
 		function(err,result){
 			_.each(result,function(e){
-				//fiveMinuteresult.insert({_id:null,avg:'sdaf'})
-				console.log(e)//.metr[0])
-				// sub.insert("fiveMinuteresult",e.epoch5min, {
-// 					key: e.site,
-// 					count: e.count
-// 				});
+				var min5obj = {};
+				min5obj._id = e._id;
+				min5obj.site = e.site;
+				metrons = e.nuisance;
+				subSums = e.nuisum; //have to break it out per 
+				for (i=0;i<metrons.length;i++){
+					for ( var newkey in metrons[i]){
+						if(metrons[i][newkey][1]['metric']=="Flag" && metrons[i][newkey][1]['val']==1){
+							if(!min5obj[newkey]){
+								min5obj[newkey]=metrons[i][newkey][0]['val'];
+								min5obj['numValid'] = 1;
+							}else{
+								min5obj[newkey]+=metrons[i][newkey][0]['val'];
+								min5obj['numValid'] += 1;
+							}
+							if ((min5obj['numValid']/subSums)>.75){
+								min5obj[newkey]=min5obj[newkey]/min5obj['numValid']
+							//why aren't the numValid higher?
+								//should insert min5obj into collection here
+								console.log(min5obj)
+							}
+						}
+ 					}
+				}
 			});
-			//console.log(test)
-			//sub.ready();
 		},
 		function(error) {
 			Meteor._debug("error during aggregation: "+error);
-		}
+		},
+		{explain:true}
 	)
 );
-console.log('five')
-console.log(fiveMinuteresult.find().count())
 
-// var fiveMinuteresult = LiveData.aggregate(pipeline, {explain: true});
-// console.log("Explain Outside:", JSON.stringify(fiveMinuteresult[0]), null, 2);
-// console.log(fiveMinuteresult)
-var writeAggreg = Meteor.bindEnvironment(function(epoch){
-	var future = new Future();
-	var showOne = LiveData.findOne();
-	// console.log('findOne')
-	console.log(showOne)
-	console.log(LiveData.find().count())
-	// console.log(showOne.subTypes.metrons)
-	var epoch = showOne.epoch;
-	var aggreg = LiveData.aggregate( [
-		{$group: {_id: null, resTime: {$sum: "$subTypes.metrons.O3.conc"}}}
-		//{$group: {_id : { $gt : [epoch - 500000, epoch - (epoch%300000)]}}}
-		// { $group: { _id : { $regex: /^'$site+_'/ }
-	// //	{ $group: { _id : { site : "$site", epoch : "$epoch5min" }
-	//	}}
-	//	
-	//    	 	{ $match: { totalPop: { $gte: 10*1000*1000 } } }
-	 ],{explain: true} );
-	 console.log(aggreg)
-	 console.log("Explain Report:", JSON.stringify(aggreg[0]), null, 2);
-	var future = new Future();
-});
-//writeAggreg('epoch');
-//LiveData.remove({});
 var write10Sec = function(arr){
 	for (var k=0;k<arr.length;k++){
 		var singleObj = makeObj(arr[k]);
@@ -145,13 +102,19 @@ var write10Sec = function(arr){
 		singleObj.epoch5min = epoch - (epoch%300000);
 		liveDataUpsert(singleObj);
 	};
-	writeAggreg(singleObj.epoch);
+	//writeAggreg(singleObj.epoch);
 };
 var siteTableAlpha = function(alpha){
+	//Meteor.bindEnvironment(function(alpha){
+	//	var future = new Future();
+	//	var testLoop = LiveData.findOne();
 	//have it return from the sites db
 	//var sites = 
 	//return sites[alpha]
 	return '481670571'
+	//return future.wait(); 
+	
+	//return testLoop
 };
 var makeObj = function(keys){ //pass newVal==true for preallocate
 	var obj = {};
@@ -172,11 +135,11 @@ var makeObj = function(keys){ //pass newVal==true for preallocate
 				obj.subTypes.metrons[metron].push({metric:metric,val:val});
 			}
 			if (!obj.site){
-				obj.site = siteTableAlpha(alphaSite);
+				obj.site = siteTableAlpha(alphaSite) || '481670571';
 			}
 		};
 	};
-	console.log(obj)
+//	console.log(obj)
 //needs to return shape from schema in data.js (which must be accessible client and server)
 	return obj
 };	
@@ -197,25 +160,11 @@ var makeObj = function(keys){ //pass newVal==true for preallocate
   site: '481670571',
   epoch10sec: 5196234320000 }
 
-		// console.log(singleObj)
-// 		console.log(singleObj.subTypes)
-// 		console.log(singleObj.subTypes.metrons)
-// 		console.log(singleObj.subTypes.metrons.O3)
-// 		console.log(singleObj.subTypes.metrons.O3[1])
-//console.log(singleObj.subTypes.metrons.O3[1].metric)
 		// singleObj.epoch10sec = epoch - (epoch%10000);
 		// obj.epoch5min = epoch - (epoch%300000);
 		// obj.epoch1hr = epoch - (epoch%3600000);
 		// obj.epoch1day = epoch - (epoch%86400000);
 
-
-FOR SEARCHING ON OBJ SUBTYPES http://learnmongodbthehardway.com/schema/chapter5/
-var col = db.getSisterDB("supershot").images;
-col.find({ metadata: { $all: [
-            { "$elemMatch" : { key : "MIME type", value: "image/jpeg" } },
-            { "$elemMatch" : { key: "Flash", value: "No, auto" } }
-          ]}
-       }).toArray();
 */
 
 var rdFile = function(path){

@@ -95,6 +95,7 @@
         "test": false,
         "emit": false,
         // App specific globals
+        "JSON": false,
         "Mongo": false,
         "Sites": false,
         "Favorites": false,

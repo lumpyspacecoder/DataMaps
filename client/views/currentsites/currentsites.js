@@ -76,7 +76,6 @@ function reactiveArea() {
             color: '#5CA221'
         }]
     });
-
 }
 
 Template.currentsites.rendered = function () {

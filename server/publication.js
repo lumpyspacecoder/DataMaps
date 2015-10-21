@@ -29,7 +29,7 @@ Meteor.publish('tceqData', function () {
 });
 
 Meteor.publish('siteData', function(latLng) {
-    return Sites.find({'location': {
+    return Monitors.find({'location': {
       $near:  {
         $geometry: {
           type: 'Point',

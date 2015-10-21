@@ -2,7 +2,6 @@
 var chokidar = Meteor.npmRequire('chokidar');
 var csvmodule = Meteor.npmRequire('csv');
 var fs = Meteor.npmRequire('fs');
-var Fiber = Meteor.npmRequire('fibers');
 var logger = Meteor.npmRequire('winston'); // this retrieves default logger which was configured in log.js
 
 //insert live data into DB
@@ -37,9 +36,9 @@ var writeAggreg = Meteor.bindEnvironment(function () {
 });
 
 
-var findSite = Meteor.bindEnvironment(function (alpha) {    
+var findMonitor = Meteor.bindEnvironment(function (alpha) {
     //logger.info('Found site: ', obj.site, ' for ', alpha);
-    return Sites.findOne(alpha);
+    return Monitors.findOne(alpha);
 });
 
 //create object structure
@@ -48,11 +47,11 @@ var makeObj = function (alpha, keys) { //pass newVal==true for preallocate
     obj.subTypes = {};
     obj.subTypes.metrons = {};
     var metron = [];
-    
+
     for (var key in keys) {
         var subKeys = key.split('_');
         if (subKeys.length > 1) { //skipping 'TheTime'
-            var alphaSite = subKeys[0]+'_'+subKeys[1];
+            var alphaSite = subKeys[0] + '_' + subKeys[1];
             var metric = subKeys[subKeys.length - 1]; //i.e. conc., direction, etc.
             var metrized = key.replace(alphaSite + '_', '');
             metron = metrized.replace('_' + metric, ''); //wind, O3, etc.

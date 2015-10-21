@@ -4,7 +4,7 @@ Accounts.config({
 });
 AdminConfig = {
   collections: {
-	  Sites: {},
+	  Monitors: {},
 	  AggrData: {}
   }
 };

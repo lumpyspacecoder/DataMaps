@@ -97,7 +97,7 @@
         // App specific globals
         "JSON": false,
         "Mongo": false,
-        "Sites": false,
+        "Monitors": false,
         "Favorites": false,
         "LiveData": false,
         "TCEQData": false,

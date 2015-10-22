@@ -45,7 +45,7 @@
     "moz": false, // This options tells JSHint that your code uses Mozilla JavaScript extensions.
     "multistr": false, // Tolerate multi-line strings.
     "notypeof": false, // This option suppresses warnings about invalid typeof operator values.
-    "plusplus": true, // Tolerate use of `++` & `--`.
+    "plusplus": false, // Tolerate use of `++` & `--`.
     "proto": false, // Tolerate __proto__ property. This property is deprecated.
     "scripturl": false, // Tolerate script-targeted URLs.
     "smarttabs": false, // Tolerate mixed tabs and spaces when the latter are used for alignmnent only.

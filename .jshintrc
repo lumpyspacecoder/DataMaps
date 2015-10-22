@@ -96,6 +96,7 @@
         "test": false,
         "emit": false,
         // App specific globals
+        "winston": false,
         "JSON": false,
         "Mongo": false,
         "Monitors": false,

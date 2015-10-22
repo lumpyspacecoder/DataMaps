@@ -81,9 +81,18 @@ var readFile = function (path) {
     });
 };
 
-var initialRead = function (path) {
-    
-  
+var initialRead = function (directory) {
+    fs.readdir(directory, function (err, files) {
+        if (err) {
+            return;
+        }
+        files.forEach(function (f) {
+            var path = directory + f;
+            logger.info('found: ', path);
+            readFile(path);
+        });
+    });
+
 };
 
 var liveWatcher = chokidar.watch('/hnet/incoming/2015', {
@@ -109,6 +118,6 @@ liveWatcher
         logger.error('Error happened', error);
     })
     .on('ready', function () {
-        initialRead('/hnet/incoming/2015/UHCCH_DAQData');
+        initialRead('/hnet/incoming/2015/UHCCH_DAQData/');
         logger.info('Initial scan for hnetincoming2015 complete. Ready for changes');
     });

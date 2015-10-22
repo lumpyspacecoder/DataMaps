@@ -1,6 +1,5 @@
 {
-    // == Enforcing Options ===============================================
-    "bitwise": true, // Prohibit bitwise operators (&, |, ^, etc.).
+    // == Enforcing Options ===============================================    
     "camelcase": true, // Variable names either camelCase style or UPPER_CASE with underscores.
     "curly": true, // Require {} for every new block or scope.
     "eqeqeq": true, // Require triple equals i.e. `===`.
@@ -15,7 +14,6 @@
     "noempty": true, // Prohibit use of empty blocks.
     "nonbsp": true, // Warns about "non-breaking whitespace" characters.
     "nonew": true, // Prohibit use of constructors for side-effects.
-    "plusplus": true, // Prohibit use of `++` & `--`.
     "quotmark": "single", // Allow only single quotes.
     "undef": true, // Require all non-global variables be declared before they are used.
     "unused": true, // Warns when you define and never use your variables.
@@ -28,6 +26,7 @@
 
     // == Relaxing Options ================================================
     "asi": false, // Tolerate Automatic Semicolon Insertion (no semicolons).
+    "bitwise": false, // Allow bitwise operators (&, |, ^, etc.).
     "boss": false, // Tolerate assignments inside if, for & while. Usually conditions & loops are for comparison, not assignments.
     "debug": false, // Allow debugger statements e.g. browser breakpoints.
     "eqnull": false, // Tolerate use of `== null`.
@@ -46,6 +45,7 @@
     "moz": false, // This options tells JSHint that your code uses Mozilla JavaScript extensions.
     "multistr": false, // Tolerate multi-line strings.
     "notypeof": false, // This option suppresses warnings about invalid typeof operator values.
+    "plusplus": true, // Tolerate use of `++` & `--`.
     "proto": false, // Tolerate __proto__ property. This property is deprecated.
     "scripturl": false, // Tolerate script-targeted URLs.
     "smarttabs": false, // Tolerate mixed tabs and spaces when the latter are used for alignmnent only.
@@ -78,6 +78,7 @@
         "Template": false,
         "Session": false,
         "UI": false,
+        "Tracker": false,
         "_": false,
         "Deps": false,
         // Atmosphere packages

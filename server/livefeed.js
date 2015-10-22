@@ -2,52 +2,29 @@
 var chokidar = Meteor.npmRequire('chokidar');
 var csvmodule = Meteor.npmRequire('csv');
 var fs = Meteor.npmRequire('fs');
+var Future = Meteor.npmRequire('fibers/future');
 var logger = Meteor.npmRequire('winston'); // this retrieves default logger which was configured in log.js
 
-//insert live data into DB
+//insert live data into DB - serves as a cache for most recent day; _id is site_sensor_epoch
+//obj has site, sensor [rdgType], epoch5min, epoch10sec
 var liveDataUpsert = Meteor.bindEnvironment(function (obj) {
+    var future = new Future();
     LiveData.upsert({
         _id: obj.site + '_' + obj.epoch
     }, {
         epoch5min: obj.epoch5min,
         subTypes: obj.subTypes
     });
-});
-
-var writeAggreg = Meteor.bindEnvironment(function () {
-    var showOne = LiveData.findOne();
-    console.log(showOne);
-    console.log(LiveData.find().count());
-
-    var aggreg = LiveData.aggregate([
-        {
-            $group: {
-                _id: null,
-                resTime: {
-                    $sum: '$subTypes.metrons.O3.conc'
-                }
-            }
-        }
-  ], {
-        explain: true
-    });
-    console.log(aggreg);
-    console.log('Explain Report: ', JSON.stringify(aggreg[0]), null, 2);
+    return future.wait();
 });
 
 
-var findMonitor = Meteor.bindEnvironment(function (alpha) {
-    //logger.info('Found site: ', obj.site, ' for ', alpha);
-    return Monitors.findOne(alpha);
-});
 
-//create object structure
-var makeObj = function (alpha, keys) { //pass newVal==true for preallocate
+var makeObj = function (keys) { //pass newVal==true for preallocate
     var obj = {};
     obj.subTypes = {};
     obj.subTypes.metrons = {};
     var metron = [];
-
     for (var key in keys) {
         var subKeys = key.split('_');
         if (subKeys.length > 1) { //skipping 'TheTime'
@@ -67,46 +44,75 @@ var makeObj = function (alpha, keys) { //pass newVal==true for preallocate
                     val: val
                 });
             }
-            if (!obj.site) {
-                obj.site = findSite(alpha);
-            }
         }
     }
     //needs to return shape from schema in data.js (which must be accessible client and server)
     return obj;
 };
 
-var write10Sec = function (alpha, arr) {
-    var singleObj = [];
+var write10Sec = function (siteInfo, arr) {
     for (var k = 0; k < arr.length; k++) {
-        singleObj = makeObj(alpha, arr[k]);
+        var singleObj = makeObj(arr[k]);
         var epoch = (((arr[k].TheTime - 25569) * 86400) + 6) * 3600;
         singleObj.epoch = epoch - (epoch % 10000); //rounding down to 10 seconds
         singleObj.epoch5min = epoch - (epoch % 300000);
+        singleObj.site = siteInfo;
         liveDataUpsert(singleObj);
     }
 };
 
-//read HNET style file (10s data)
+
+// This function returns a future which resolves after a timeout. This
+// demonstrates manually resolving futures.
+function sleep(ms) {
+    var future = new Future;
+    setTimeout(function() {
+        future.return();
+    }, ms);
+    return future;
+}
+
+// This is a function which automatically runs in their own fiber and
+// return futures that resolve when the fiber returns (found at https://github.com/laverdet/node-fibers).
+var calcTimerDelta = function(ms) {
+    var start = new Date;
+    sleep(ms).wait();
+    return new Date - start;
+}.future(); // <-- important!
+
+
+
 var readFile = function (path) {
     var pathArray = path.split('/');
     var parentDir = pathArray[pathArray.length - 2];
+    
+    // And futures also include node-friendly callbacks if you don't want to use
+// wait()
+calcTimerDelta(2000).resolve(function(err, val) {
+    console.log('Set timer for 2000ms, waited '+ val+ 'ms');
+    
+    var siteInfo = lookupSite(parentDir);
+    logger.info('siteInfo: ', siteInfo);
+
     fs.readFile(path, 'utf-8', function (err, output) {
         csvmodule.parse(output, {
             delimiter: ',',
             rowDelimiter: '\r',
             auto_parse: true,
             columns: true
-        }, function (err, siteInfo) {
+        }, function (err, parsedLine) {
             if (err) {
                 logger.error(err);
             }
-            write10Sec(parentDir, siteInfo);
+            logger.info('siteInfo2: ', siteInfo);
+            write10Sec(siteInfo, parsedLine);
         });
     });
+});
+    
+    
 };
 
-//starting watcher for live incoming data
 var liveWatcher = chokidar.watch('/hnet/incoming/2015', {
     ignored: /[\/\\]\./,
     ignoreInitial: true,
@@ -130,5 +136,5 @@ liveWatcher
         logger.error('Error happened', error);
     })
     .on('ready', function () {
-        logger.info('Initial scan for /hnet/incoming/2015 complete. Ready for changes');
+        logger.info('Initial scan for hnetincoming2015 complete. Ready for changes');
     });

@@ -1,16 +1,19 @@
 
 
 var selectedPoints = null;
+var ozoneCursor = null;
 
 function reactiveArea() {
 	  var site =  Session.get("selectedSite");
          var $report= $('#report');
         Meteor.subscribe('LiveData',site);
-		var ozoneCursor = LiveFeedMonitors.find({siteRef:site}, {limit: 240});
+    
+		ozoneCursor = LiveFeedMonitors.find({siteRef:site}, {limit: 240});
+		
 		var ozoneConDataforGraph = [];
 		ozoneCursor.forEach(function(time) {
 			ozoneConDataforGraph.push({ x: new Date(time.epoch*1000),
-									y: parseFloat(time.O3_conc)});
+									y: parseFloat(time.O3_conc), 	id: time._id});
 		});
     
     Highcharts.setOptions({
@@ -117,6 +120,9 @@ Template.currentsites.events({
 			
 			jQuery.each(points, function(i, point) {
 				point.remove();
+				LiveFeedMonitors.remove(point.id);
+				console.log('removed!');
+				
 			});
 			
   },
@@ -125,9 +131,11 @@ Template.currentsites.events({
 			
 			if (!points.length) alert ('No points selected. Click a point to select it. Control click to select multiple points');
 			var result = prompt("Enter the updated value for your selection:")
-      var num1 = parseInt(result);
+      var num1 = parseFloat(result);
       jQuery.each(points, function(i, point) {
-            point.update(num1);
+          point.update(num1);
+				  LiveFeedMonitors.update({_id: point.id}, {$set: {O3_conc : num1.toString()}});
+				  console.log('updated!');
             
        });
 			

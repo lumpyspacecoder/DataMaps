@@ -1,3 +1,3 @@
 
 Favorites = new Mongo.Collection('favorites');
-LiveFeedMonitors = new Mongo.Collection('data');
+LiveFeedMonitors = new Mongo.Collection('data', {idGeneration: 'STRING'});

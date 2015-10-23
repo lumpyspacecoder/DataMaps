@@ -10,6 +10,18 @@
     Meteor.publish("LiveData", function (site) {
         return LiveFeedMonitors.find({siteRef: site}, {limit: 240}, {sort: {'epoch': -1} });
     });
+    
+    LiveFeedMonitors.allow({
+      remove: function () {
+        return true;
+      },
+      
+      update: function () {
+        return true;
+      }
+    });
+    
+    
 
 //console.log(LiveFeedMonitors.find({site: '2015'}).count())
 //	//the npmRequire may need to be Npm.require, depending on how the node functions are called

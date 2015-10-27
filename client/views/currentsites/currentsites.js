@@ -8,7 +8,7 @@ function reactiveArea() {
          var $report= $('#report');
         Meteor.subscribe('LiveData',site);
     
-		ozoneCursor = LiveFeedMonitors.find({siteRef:site}, {limit: 240});
+		ozoneCursor = LiveData.find({siteRef:site}, {limit: 240});
 		
 		var ozoneConDataforGraph = [];
 		ozoneCursor.forEach(function(time) {
@@ -120,7 +120,7 @@ Template.currentsites.events({
 			
 			jQuery.each(points, function(i, point) {
 				point.remove();
-				LiveFeedMonitors.remove(point.id);
+				LiveData.remove(point.id);
 				console.log('removed!');
 				
 			});
@@ -134,7 +134,7 @@ Template.currentsites.events({
       var num1 = parseFloat(result);
       jQuery.each(points, function(i, point) {
           point.update(num1);
-				  LiveFeedMonitors.update({_id: point.id}, {$set: {O3_conc : num1.toString()}});
+				  LiveData.update({_id: point.id}, {$set: {O3_conc : num1.toString()}});
 				  console.log('updated!');
             
        });

@@ -10,13 +10,13 @@ Template.menu.onCreated( function() {
     // creation of reactive var which will be a mongo query for the menu of live data monitors
     var self = this;
     self.autorun(function () {
-    self.subscribe('LiveMenu');
+    self.subscribe('LiveData');
   });
 });
 
 Template.menu.helpers({
       currentSites: function () {
-        var data = LiveFeedMonitors.find().fetch();
+        var data = LiveData.find().fetch();
          var distinctData = _.uniq(data, false, function(d) {return d.siteRef});
          return _.pluck(distinctData, "siteRef");
 }

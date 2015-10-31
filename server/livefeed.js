@@ -30,79 +30,56 @@ var liveDataUpdate = Meteor.bindEnvironment(function (obj) {
     return future.wait();
 });
 
-//overwrite 5 minute data in DB
-var aggrDataUpsert = Meteor.bindEnvironment(function (obj) {
-    var future = new Future();
-	AggrData.upsert(obj)
-    // AggrData.upsert({
-//         // Selector
-//         timeStamp: obj.theTime,
-//         siteRef: obj.siteRef,
-//         param: obj.param
-//     }, {
-//         // Modifier
-//         $push: {
-//             flag: obj.flag,
-//             overwriteTimeStamp: moment()
-//         }
-//     });
-    return future.wait();
-});
-
-var siteId = '481670571'
-var timeChosen = '519626' //first part of relevant epoch lookup
-var siteChosen = new RegExp('^'+siteId+'_'+timeChosen)
-var pipeline = [
-	{$match: {_id: {$regex:siteChosen}}},
-	{$project: {epoch5min:1,epoch:1,site:1,'subTypes.metrons':1}}, 
-	{$group: {_id:'$epoch5min',site:{$last:"$site"},nuisance:{$push:"$subTypes.metrons"}}}
-    ];
-/*
-can we use this for no matter the time period??	
-	perhaps pick up standard deviation, and variance at same tim
-average = function(a) {
-  var r = {mean: 0, variance: 0, deviation: 0}, t = a.length;
-  for(var m, s = 0, l = t; l--; s += a[l]);
-  for(m = r.mean = s / t, l = t, s = 0; l--; s += Math.pow(a[l] - m, 2));
-  return r.deviation = Math.sqrt(r.variance = s / t), r;
-}
-	*/
-LiveData.aggregate(pipeline,
-	Meteor.bindEnvironment(
-		function(err,result){
-			_.each(result,function(e){
-				var subObj = {}
-				subObj._id = e._id;
-				subObj.site = e.site;
-				metrons = e.nuisance; 
-				for (i=0;i<metrons.length;i++){
-					for ( var newkey in metrons[i]){
-						if(metrons[i][newkey][1]['metric']=="Flag" && metrons[i][newkey][1]['val']==1){
-							if(!subObj[newkey]){
-								subObj[newkey]={'sum':metrons[i][newkey][0]['val'],'avg':metrons[i][newkey][0]['val'],'variance':0.0,'stdDev':0.0,'numValid':parseInt(1),'Flag':1};
-							}else{
-								subObj[newkey]['numValid'] += 1;
-								subObj[newkey]['sum']+=metrons[i][newkey][0]['val'];  //holds sum until end
-								subObj[newkey]['avg'] = subObj[newkey]['sum']/subObj[newkey]['numValid'];
-								subObj[newkey]['variance'] += Math.pow((metrons[i][newkey][0]['val']- subObj[newkey]['avg']), 2);
+var perform5minAggregat = function(){ //
+	console.log('perform5minAggregat')
+	var siteId = '481670571'
+	var timeChosen = '519626' //first part of relevant epoch lookup
+	var siteChosen = new RegExp('^'+siteId+'_'+timeChosen)
+	var pipeline = [
+		{$match: {_id: {$regex:siteChosen}}},
+		{$project: {epoch5min:1,epoch:1,site:1,'subTypes.metrons':1}}, 
+		{$group: {_id:'$epoch5min',site:{$last:"$site"},nuisance:{$push:"$subTypes.metrons"}}}
+	    ];
+	LiveData.aggregate(pipeline,
+		Meteor.bindEnvironment(
+			function(err,result){
+				_.each(result,function(e){
+					var subObj = {}
+					subObj._id = e._id;
+					subObj.site = e.site;
+					metrons = e.nuisance; 
+					for (i=0;i<metrons.length;i++){
+						for ( var newkey in metrons[i]){
+							if(metrons[i][newkey][1]['metric']=="Flag" && metrons[i][newkey][1]['val']==1){
+								if(!subObj[newkey]){
+									subObj[newkey]={'sum':metrons[i][newkey][0]['val'],'avg':metrons[i][newkey][0]['val'],'variance':0.0,'stdDev':0.0,'numValid':parseInt(1),'Flag':1};
+								}else{
+									subObj[newkey]['numValid'] += 1;
+									subObj[newkey]['sum']+=metrons[i][newkey][0]['val'];  //holds sum until end
+									subObj[newkey]['avg'] = subObj[newkey]['sum']/subObj[newkey]['numValid'];
+									subObj[newkey]['variance'] += Math.pow((metrons[i][newkey][0]['val']- subObj[newkey]['avg']), 2);
+								};
+								subObj[newkey]['stdDev']=Math.sqrt(subObj[newkey]['variance']);
+								if ((subObj[newkey]['numValid']/i)<.75){ 
+									subObj[newkey]['Flag']=0;//should discuss how to use
+								};
 							};
-							subObj[newkey]['stdDev']=Math.sqrt(subObj[newkey]['variance']);
-							if ((subObj[newkey]['numValid']/i)<.75){ 
-								subObj[newkey]['Flag']=0;//should discuss how to use
-							};
-						};
- 					};
-				};
-				//aggrDataUpsert(subObj); //have to wait to do validation in schema
-			});
-			
-		},
-		function(error) {
-			Meteor._debug("error during aggregation: "+error);
-		}
-	)
-);
-
+	 					};
+					};
+					AggrData.update({_id:subObj._id},
+							subObj,
+						{ upsert: true });
+					//I turned off schema in data.js
+				});
+				
+			},
+			function(error) {
+				Meteor._debug("error during aggregation: "+error);
+			}
+		)
+	);
+};
+//perform5minAggregat(); //uncomment out, put in meteor, or put in setInterval
 var write10Sec = function(arr){
 	for (var k=0;k<arr.length;k++){
 		var singleObj = makeObj(arr[k]);

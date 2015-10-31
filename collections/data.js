@@ -108,4 +108,4 @@ Schemas.AggrData = new SimpleSchema({
   }
 });
 
-AggrData.attachSchema(Schemas.AggrData)
+//AggrData.attachSchema(Schemas.AggrData)

@@ -7,7 +7,7 @@ function reactiveArea() {
 	var time2find = (new Date).getTime();//passing epoch as most recent? 
 	time2find = '5196299900000'  //for testing
 	var timeChosen = time2find - (time2find%36000000);  
-	var timeChosenStr = timeChosen.toString().replace('000000',''); //need to have number of zeroes dynamic
+	var timeChosenStr = timeChosen.toString().replace(/0+$/,'');
 	Meteor.subscribe('livedata',site,timeChosenStr);
     pollutCursor = LiveData.find({}, {limit: 240}); //just in case asking for too much
 	var data4graph = [];

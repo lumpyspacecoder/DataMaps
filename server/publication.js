@@ -1,8 +1,5 @@
 Meteor.publish('livedata', function (site,timeChosen) {
 	var siteTimeChosen = new RegExp('^'+site+'_'+timeChosen);
-	console.log('siteTimeChosen',siteTimeChosen)
-	console.log(LiveData.findOne({_id: {$regex:'^481670571_519624'}}));//   ;.subTypes.metrons.O3[0].val)
-	//return LiveData.find({_id: {$regex:'^481670571_519624'}});
 	return LiveData.find({_id: {$regex:siteTimeChosen}});
 });
 

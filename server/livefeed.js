@@ -66,7 +66,7 @@ var perform5minAggregat = function(siteId,timeChosen){
 					AggrData.update({_id:subObj._id},
 							subObj,
 						{ upsert: true });
-					console.log(subObj)
+					//console.log(subObj)
 					//I turned off schema in data.js
 				});
 				

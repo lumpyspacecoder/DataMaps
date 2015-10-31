@@ -30,13 +30,10 @@ var liveDataUpdate = Meteor.bindEnvironment(function (obj) {
     return future.wait();
 });
 
-var perform5minAggregat = function(){ //
-	console.log('perform5minAggregat')
-	var siteId = '481670571'
-	var timeChosen = '519626' //first part of relevant epoch lookup
-	var siteChosen = new RegExp('^'+siteId+'_'+timeChosen)
+var perform5minAggregat = function(siteId,timeChosen){ 
+	var siteTimeChosen = new RegExp('^'+siteId+'_'+timeChosen)
 	var pipeline = [
-		{$match: {_id: {$regex:siteChosen}}},
+		{$match: {_id: {$regex:siteTimeChosen}}},
 		{$project: {epoch5min:1,epoch:1,site:1,'subTypes.metrons':1}}, 
 		{$group: {_id:'$epoch5min',site:{$last:"$site"},nuisance:{$push:"$subTypes.metrons"}}}
 	    ];
@@ -69,6 +66,7 @@ var perform5minAggregat = function(){ //
 					AggrData.update({_id:subObj._id},
 							subObj,
 						{ upsert: true });
+					console.log(subObj)
 					//I turned off schema in data.js
 				});
 				
@@ -79,7 +77,21 @@ var perform5minAggregat = function(){ //
 		)
 	);
 };
-//perform5minAggregat(); //uncomment out, put in meteor, or put in setInterval
+Meteor.setInterval(function(){
+	var siteId = '481670571'
+	var epochNow = (new Date).getTime();//passing epoch as most recent? 
+	var timeChosen = epochNow - (epochNow%300000); 
+	perform5minAggregat(siteId,timeChosen);
+},300000); //every five minutes
+
+// var siteId = '481670571'
+// var timeChosen = '519626'
+// perform5minAggregat(siteId,timeChosen); //uncomment out, put in meteor, or put in setInterval
+Meteor.methods({ //make own file???
+	new5minAggreg: function(siteId,timeChosen){
+		perform5minAggregat(siteId,timeChosen);
+	}
+}); //end methods
 var write10Sec = function(arr){
 	for (var k=0;k<arr.length;k++){
 		var singleObj = makeObj(arr[k]);

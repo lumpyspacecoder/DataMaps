@@ -1,21 +1,38 @@
 var selectedPoints = null;
 var ozoneCursor = null;
 
+
+//move shit into onRendered, etc.
+
+//LiveData.find();
+// var data4graph = [];//
+//;
+// console.log(data4graph)
+// livedata.forEach(function(){
+// 	console.log('line')
+// // // 	//data4graph.push(line)
+//  })
+
 function reactiveArea() {
-	var site =  Session.get("selectedSite") || '481670571'; //neet to check about subscribe needing string
-    var $report= $('#report');
-	var time2find = (new Date).getTime();//passing epoch as most recent? 
-	time2find = '5196299900000'  //for testing
-	var timeChosen = time2find - (time2find%36000000);  
-	var timeChosenStr = timeChosen.toString().replace(/0+$/,'');
-	Meteor.subscribe('livedata',site,timeChosenStr);
-    pollutCursor = LiveData.find({}, {limit: 240}); //just in case asking for too much
-	var data4graph = [];
-	pollutCursor.forEach(function(line){
-		data4graph.push({ x: new Date(line.epoch*1000),
-						  y: line.subTypes.metrons.O3[0].val
-		});
-	})
+	//var $report= $('#report');
+	// console.log('reactiv')
+	//     pollutCursor = LiveData.find({}, {limit: 240}); //just in case asking for too much
+	// var data4graph = [];
+	// console.log(pollutCursor)
+	// // LiveData.find({}).observeChanges({
+	// // 	addedBefore: function(id,line){
+	// // 		console.log(line)
+	// // 			data4graph.push({ x: new Date(line.epoch*1000),
+	// // 							  y: line.subTypes.metrons.O3[0].val
+	// // 			});
+	// // 	}
+	// // });
+	// pollutCursor.forEach(function(line){
+	// 	console.log(line)
+	// 	data4graph.push({ x: new Date(line.epoch*1000),
+	// 					  y: line.subTypes.metrons.O3[0].val
+	// 	});
+	// })
 		// ozoneCursor = LiveData.find({siteRef:site}, {limit: 240});
 //
 // 		var ozoneConDataforGraph = [];
@@ -23,102 +40,22 @@ function reactiveArea() {
 // 			ozoneConDataforGraph.push({ x: new Date(time.epoch*1000),
 // 									y: parseFloat(time.O3_conc), 	id: time._id});
 // 		});
-    
-    Highcharts.setOptions({
-        global: {
-            useUTC: false
-        }
-    });
-    
-  var chart = $('#container-chart-reactive').highcharts({
-        exporting: {
-            chartOptions: { // specific options for the exported image
-                plotOptions: {
-                    series: {
-                        dataLabels: {
-                            enabled: true
-                        }
-                    }
-                }
-            },
-            scale: 3,
-            fallbackToExportServer: false
-        },
-        chart:{
-            zoomType: 'x'
-        },
-        title: {
-            text: 'Ozone Readings at ' + site
-        },
-        
-        credits: {
-            text: "UH-HNET",
-            href: "http://hnet.uh.edu"
-            
-        },
-        xAxis: {
-            type: 'datetime'
-        },
-        
-        yAxis: {
-            title: {
-                text: 'Ozone Concentration'
-            }
-//            labels: {
-//                formatter: function () {
-//                    return this.value;
-//                }
-//            }
-        },
-        
-        series: [{
-            name: "Ozone Concentration",
-            data: data4graph,
-            color: '#8CB921'
-        }],
-        plotOptions: {
-            series: {
-                allowPointSelect: true,
-                point: {
-                    events: {
-                        select: function() {
-                            var selectedPointsStr = "";
-                            // when is the chart object updated? after this function finshes?
-                            var chart = this.series.chart;
-                            selectedPoints = chart.getSelectedPoints();
-                            selectedPoints.push(this);
-                            $.each(selectedPoints, function(i, value) {
-                    			selectedPointsStr += "<br>"+value.category;
-		                    });
-		                  
-                            
-                            $report.html(selectedPointsStr);
-                            
-                            
-                        }
-                        // update: function() {
-                        //   if (!confirm('Do you want to set the point\'s value to ' + event.options + '?')) {
-                        //         return false;
-                        //   }
-                        // }
-                        
-                    }
-                }
-            }
-        }
-    });
+
                          
    
 	}
 	
+Template.currentsites.onRendered(function (){
 
+	//var data4graphColl = new Meteor.Collection('dataInGraph');
+});
 
-Template.currentsites.rendered = function () {
-    
-    Tracker.autorun(function () {
-       reactiveArea();
-    });
-}
+// Template.currentsites.rendered = function () {
+//
+//     //Tracker.autorun(function () {
+//        reactiveArea();
+//     //});
+// }
 
 Template.currentsites.events({
   "click #button2": function(e){

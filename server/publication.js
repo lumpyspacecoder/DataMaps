@@ -1,5 +1,36 @@
+// Meteor.publish('livedata', function (site,timeChosen) {
+// 	var self = this; //because 'this' is different inside of added
+// 	var siteTimeChosen = new RegExp('^'+site+'_'+timeChosen);
+// // 	var live2show = LiveData.find({_id: {$regex:siteTimeChosen}}).observeChanges({
+// // 		added: function (id, fields) {
+// // 			self.added("livedata", id, fields);
+// // 			// self.added("dataInGraph",id, {
+// // 			// x: new Date(fields.epoch*1000),
+// // 			// y: fields.subTypes.metrons.O3[0].val
+// // 			// 	});
+// // 		//	console.log('added', id, fields)
+// // 		//	console.log('LiveDatacount',LiveData.find().count())
+// // 		},
+// // 		changed: function(id, fields) {
+// // 		  self.changed("livedata", id, fields);
+// // 		},
+// // 		removed: function (id) {
+// // 			console.log('removed')
+// // 			console.log('LiveDatacount',LiveData.find().count())
+// // 		  self.removed("livedata", id);
+// // 		}
+// // 	});
+// // 	//self.added("dataInGraph", id, {x: "testdata", Count: count});
+// // 	self.ready();
+// // //	console.log(this.connection) //curious about who is connecting? could log, I guess...
+// // 	self.onStop(function () {
+// // 		live2show.stop();
+// // 	});
+// 	return LiveData.find({_id: {$regex:siteTimeChosen}});
+// });
 Meteor.publish('livedata', function (site,timeChosen) {
 	var siteTimeChosen = new RegExp('^'+site+'_'+timeChosen);
+	console.log('siteTimeChosen in publish',siteTimeChosen)
 	return LiveData.find({_id: {$regex:siteTimeChosen}});
 });
 

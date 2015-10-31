@@ -37,7 +37,31 @@ function reactiveArea() {
             fallbackToExportServer: false
         },
         chart:{
-            zoomType: 'x'
+        events: {
+            selection: function(event) {
+                for (var i = 0; i < this.series[0].data.length; i++) {
+                    var point = this.series[0].data[i];
+                    if (point.x > event.xAxis[0].min &&
+                        point.x < event.xAxis[0].max &&
+                        point.y > event.yAxis[0].min &&
+                        point.y < event.yAxis[0].max) {
+                            point.select(true, true);
+                        }
+                    
+                }
+                return false;
+            }
+        },
+            zoomType: 'xy'
+
+            // ***** Per Dan, will implement zoom later ****** //
+            // resetZoomButton: {
+            //     position: {
+            //         // align: 'right', // by default
+            //         // verticalAlign: 'top', // by default
+            //         x: 0,
+            //         y: -30
+            //     }
         },
         title: {
             text: 'Ozone Readings at ' + site

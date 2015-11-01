@@ -22,28 +22,33 @@ Template.currentsites.onRendered(function (){
 		//Meteor.subscribe('livedata','481670571','5196276');
 		pollutCursor = LiveData.find({}, {limit: 240});
 		dataSets = new ReactiveDict();
-		data4graph = [];
+		dataIngraph = [];
 	//data4graph.push({x:123,y:432});
 		pollutCursor.forEach(function(line){
-			data4graph.push({ x: new Date(line.epoch*1000),
+			dataIngraph.push({ x: new Date(line.epoch*1000),
 							  y: line.subTypes.metrons.O3[0].val
 			});
 		});
+		data4graph = {};
+		data4graph.data = dataIngraph; //could make the others into objects, too
+		data4graph.name = 'Overall Graph';
+		data4graph.color = '#8CB921';
+		data4graph.type = 'bubble';
 		// for (key in dataSets.keys){
 		// 	console.log(dataSets.keys[key])
 		// }
 		dataSets.set('data4graph',data4graph)
 		var dataSeries = function(){
 			for (key in dataSets.keys){
-				console.log(dataSets.keys[key])
-				return {name: "Ozone Concentration",
-						data: dataSets.get(key), //dataSets.keys[key],
-						color: '#8CB921'
+				return {name: dataSets.get(key).name,
+						data: dataSets.get(key).data, //dataSets.keys[key],
+						color: dataSets.get(key).color,
+						type: dataSets.get(key).type,
 				}
 			}
 		}
 		//can we put five minute with box plots; other pollutants; delete, etc.
-		console.log(dataSeries())
+		//console.log(dataSeries())
 		var $report= $('#report');
 		Highcharts.setOptions({
 		    global: {

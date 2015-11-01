@@ -1,8 +1,12 @@
+currentSites = new Meteor.Collection('currentsites');
+
 var selectedPoints = null;
 var ozoneCursor = null;
 	
 
 Template.currentsites.onRendered(function (){
+//Template.currentsites.onCreated(function (){
+	//make collections, not vars, and populate from subscription
 	site = new ReactiveVar();
 	time2find = new ReactiveVar();
 	site.set('481670571'); //neet to check about subscribe needing string
@@ -10,105 +14,107 @@ Template.currentsites.onRendered(function (){
 	time2find.set('5196299900000');  //for testing
 	var timeChosen = time2find.get() - (time2find.get()%36000000);
 	var timeChosenStr = timeChosen.toString().replace(/0+$/,'');
-	Meteor.subscribe('livedata',site.get(),timeChosenStr);
-//	Meteor.subscribe('livedata','481670571','5196276');
-	pollutCursor = LiveData.find({}, {limit: 240});
-//	console.log(pollutCursor)
-	dataSets = new ReactiveDict();
-	data4graph = [];
+ 
+ 	Tracker.autorun(function () {
+		
+		Meteor.subscribe('livedata',site.get(),timeChosenStr);
+		
+		//Meteor.subscribe('livedata','481670571','5196276');
+		pollutCursor = LiveData.find({}, {limit: 240});
+		dataSets = new ReactiveDict();
+		data4graph = [];
 	//data4graph.push({x:123,y:432});
-	pollutCursor.forEach(function(line){
-		data4graph.push({ x: new Date(line.epoch*1000),
-						  y: line.subTypes.metrons.O3[0].val
+		pollutCursor.forEach(function(line){
+			data4graph.push({ x: new Date(line.epoch*1000),
+							  y: line.subTypes.metrons.O3[0].val
+			});
 		});
-	});
-	dataSets.set('data4graph',data4graph)
-	console.log(data4graph)
-    var $report= $('#report');
-    Highcharts.setOptions({
-        global: {
-            useUTC: false
-        }
-    });
-
-  var chart = $('#container-chart-reactive').highcharts({
-        exporting: {
-            chartOptions: { // specific options for the exported image
-                plotOptions: {
-                    series: {
-                        dataLabels: {
-                            enabled: true
-                        }
-                    }
-                }
-            },
-            scale: 3,
-            fallbackToExportServer: false
-        },
-        chart:{
-            zoomType: 'x'
-        },
-        title: {
-            text: 'Ozone Readings at ' + site
-        },
-
-        credits: {
-            text: "UH-HNET",
-            href: "http://hnet.uh.edu"
-    
-        },
-        xAxis: {
-            type: 'datetime'
-        },
-
-        yAxis: {
-            title: {
-                text: 'Ozone Concentration'
-            }
-//            labels: {
-//                formatter: function () {
-//                    return this.value;
-//                }
-//            }
-        },
-
-        series: [{
-            name: "Ozone Concentration",
-            data: dataSets.get('data4graph'),//data4graph,
-            color: '#8CB921'
-        }],
-        plotOptions: {
-            series: {
-                allowPointSelect: true,
-                point: {
-                    events: {
-                        select: function() {
-                            var selectedPointsStr = "";
-                            // when is the chart object updated? after this function finshes?
-                            var chart = this.series.chart;
-                            selectedPoints = chart.getSelectedPoints();
-                            selectedPoints.push(this);
-                            $.each(selectedPoints, function(i, value) {
-                    			selectedPointsStr += "<br>"+value.category;
-		                    });
-                            $report.html(selectedPointsStr);
-                        }
-                    }
-                }
-            }
-        }
-    });
+		// for (key in dataSets.keys){
+		// 	console.log(dataSets.keys[key])
+		// }
+		dataSets.set('data4graph',data4graph)
+		var dataSeries = function(){
+			for (key in dataSets.keys){
+				console.log(dataSets.keys[key])
+				return {name: "Ozone Concentration",
+						data: dataSets.get(key), //dataSets.keys[key],
+						color: '#8CB921'
+				}
+			}
+		}
+		//can we put five minute with box plots; other pollutants; delete, etc.
+		console.log(dataSeries())
+		var $report= $('#report');
+		Highcharts.setOptions({
+		    global: {
+		        useUTC: false
+		    }
+		});
+		var chart = $('#container-chart-reactive').highcharts({
+		    exporting: {
+		        chartOptions: { // specific options for the exported image
+		            plotOptions: {
+		                series: {
+		                    dataLabels: {
+		                        enabled: true
+		                    }
+		                }
+		            }
+		        },
+		        scale: 3,
+		        fallbackToExportServer: false
+		    },
+		    chart:{
+		        zoomType: 'x'
+		    },
+		    title: {
+		        text: 'Ozone Readings at ' + site
+		    },
+		    credits: {
+		        text: "UH-HNET",
+		        href: "http://hnet.uh.edu"
+		
+		    },
+		    xAxis: {
+		        type: 'datetime'
+		    },
+		    yAxis: {
+		        title: {
+		            text: 'Ozone Concentration'
+		        }
+		    },
+			series: [dataSeries()],
+		    // series: [{
+		    //     name: "Ozone Concentration",
+		    //     data: dataSets.get('data4graph'),//data4graph,
+		    //     color: '#8CB921'
+		    // }],
+		    plotOptions: {
+		        series: {
+		            allowPointSelect: true,
+		            point: {
+		                events: {
+		                    select: function() {
+		                        var selectedPointsStr = "";
+		                        // when is the chart object updated? after this function finshes?
+		                        var chart = this.series.chart;
+		                        selectedPoints = chart.getSelectedPoints();
+		                        selectedPoints.push(this);
+		                        $.each(selectedPoints, function(i, value) {
+		                			selectedPointsStr += "<br>"+value.category;
+				                    });
+		                        $report.html(selectedPointsStr);
+		                    }
+		                }
+		            }
+		        }
+		    }
+	}); //end of chart
+});//end autorun
 	//var data4graphColl = new Meteor.Collection('dataInGraph');
-});
-
-// Template.currentsites.rendered = function () {
-//
-//     //Tracker.autorun(function () {
-//        reactiveArea();
-//     //});
-// }
+}); //end of onRendered
 Template.currentsites.helpers({
-})
+});
 Template.currentsites.events({
   "click #button2": function(e){
     var points = selectedPoints;

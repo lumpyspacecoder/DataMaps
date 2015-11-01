@@ -13,15 +13,16 @@ Router.route('/',{
 		this.render();
 	}
 });
-Router.route('/currentsites/', {
+Router.route('/currentsites', {
 	name:'currentsites',
 	template:'currentsites',
-	data: function () {
-		console.log('how many times')
-		
-	}, 
+	data: function(){
+	},
 	action: function () {
-		this.render();
+		if (this.ready()) {
+ 	      this.render();
+        }else{
+          this.render('loading')};
 	}
 });
 Router.route('/history/',{

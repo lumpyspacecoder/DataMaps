@@ -13,6 +13,7 @@ Meteor.publish('livedata', function (site,timeChosen) {
 		},
 		changed: function(id, fields) {
 		  self.changed("livedata", id, fields);
+		  //can't quite tell if it automatically calls an update to the db
 		},
 		removed: function (id) {
 			console.log('removed')

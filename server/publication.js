@@ -31,6 +31,7 @@
 Meteor.publish('livedata', function (site,timeChosen) {
 	var siteTimeChosen = new RegExp('^'+site+'_'+timeChosen);
 	console.log('siteTimeChosen in publish',siteTimeChosen)
+	console.log(LiveData.find({_id: {$regex:siteTimeChosen}}).count())
 	return LiveData.find({_id: {$regex:siteTimeChosen}});
 });
 

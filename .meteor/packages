@@ -37,3 +37,5 @@ ejson
 spacebars
 check
 meteorhacks:aggregate
+reactive-var
+reactive-dict

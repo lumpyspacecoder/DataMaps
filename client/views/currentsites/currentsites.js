@@ -1,52 +1,103 @@
 var selectedPoints = null;
 var ozoneCursor = null;
-
-
-//move shit into onRendered, etc.
-
-//LiveData.find();
-// var data4graph = [];//
-//;
-// console.log(data4graph)
-// livedata.forEach(function(){
-// 	console.log('line')
-// // // 	//data4graph.push(line)
-//  })
-
-function reactiveArea() {
-	//var $report= $('#report');
-	// console.log('reactiv')
-	//     pollutCursor = LiveData.find({}, {limit: 240}); //just in case asking for too much
-	// var data4graph = [];
-	// console.log(pollutCursor)
-	// // LiveData.find({}).observeChanges({
-	// // 	addedBefore: function(id,line){
-	// // 		console.log(line)
-	// // 			data4graph.push({ x: new Date(line.epoch*1000),
-	// // 							  y: line.subTypes.metrons.O3[0].val
-	// // 			});
-	// // 	}
-	// // });
-	// pollutCursor.forEach(function(line){
-	// 	console.log(line)
-	// 	data4graph.push({ x: new Date(line.epoch*1000),
-	// 					  y: line.subTypes.metrons.O3[0].val
-	// 	});
-	// })
-		// ozoneCursor = LiveData.find({siteRef:site}, {limit: 240});
-//
-// 		var ozoneConDataforGraph = [];
-// 		ozoneCursor.forEach(function(time) {
-// 			ozoneConDataforGraph.push({ x: new Date(time.epoch*1000),
-// 									y: parseFloat(time.O3_conc), 	id: time._id});
-// 		});
-
-                         
-   
-	}
 	
-Template.currentsites.onRendered(function (){
 
+Template.currentsites.onRendered(function (){
+	site = new ReactiveVar();
+	time2find = new ReactiveVar();
+	site.set('481670571'); //neet to check about subscribe needing string
+	time2find.set((new Date).getTime());//passing epoch as most recent?
+	time2find.set('5196299900000');  //for testing
+	var timeChosen = time2find.get() - (time2find.get()%36000000);
+	var timeChosenStr = timeChosen.toString().replace(/0+$/,'');
+	Meteor.subscribe('livedata',site.get(),timeChosenStr);
+//	Meteor.subscribe('livedata','481670571','5196276');
+	pollutCursor = LiveData.find({}, {limit: 240});
+//	console.log(pollutCursor)
+	dataSets = new ReactiveDict();
+	data4graph = [];
+	//data4graph.push({x:123,y:432});
+	pollutCursor.forEach(function(line){
+		data4graph.push({ x: new Date(line.epoch*1000),
+						  y: line.subTypes.metrons.O3[0].val
+		});
+	});
+	dataSets.set('data4graph',data4graph)
+	console.log(data4graph)
+    var $report= $('#report');
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
+
+  var chart = $('#container-chart-reactive').highcharts({
+        exporting: {
+            chartOptions: { // specific options for the exported image
+                plotOptions: {
+                    series: {
+                        dataLabels: {
+                            enabled: true
+                        }
+                    }
+                }
+            },
+            scale: 3,
+            fallbackToExportServer: false
+        },
+        chart:{
+            zoomType: 'x'
+        },
+        title: {
+            text: 'Ozone Readings at ' + site
+        },
+
+        credits: {
+            text: "UH-HNET",
+            href: "http://hnet.uh.edu"
+    
+        },
+        xAxis: {
+            type: 'datetime'
+        },
+
+        yAxis: {
+            title: {
+                text: 'Ozone Concentration'
+            }
+//            labels: {
+//                formatter: function () {
+//                    return this.value;
+//                }
+//            }
+        },
+
+        series: [{
+            name: "Ozone Concentration",
+            data: dataSets.get('data4graph'),//data4graph,
+            color: '#8CB921'
+        }],
+        plotOptions: {
+            series: {
+                allowPointSelect: true,
+                point: {
+                    events: {
+                        select: function() {
+                            var selectedPointsStr = "";
+                            // when is the chart object updated? after this function finshes?
+                            var chart = this.series.chart;
+                            selectedPoints = chart.getSelectedPoints();
+                            selectedPoints.push(this);
+                            $.each(selectedPoints, function(i, value) {
+                    			selectedPointsStr += "<br>"+value.category;
+		                    });
+                            $report.html(selectedPointsStr);
+                        }
+                    }
+                }
+            }
+        }
+    });
 	//var data4graphColl = new Meteor.Collection('dataInGraph');
 });
 
@@ -56,7 +107,8 @@ Template.currentsites.onRendered(function (){
 //        reactiveArea();
 //     //});
 // }
-
+Template.currentsites.helpers({
+})
 Template.currentsites.events({
   "click #button2": function(e){
     var points = selectedPoints;

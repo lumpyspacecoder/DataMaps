@@ -95,7 +95,7 @@ Meteor.methods({ //make own file???
 var write10Sec = function(arr){
 	for (var k=0;k<arr.length;k++){
 		var singleObj = makeObj(arr[k]);
-		var epoch = (((arr[k].TheTime - 25569) * 86400) + 6) * 3600;
+		var epoch = ((arr[k].TheTime - 25569) * 86400) + (6 * 3600);
 		singleObj.epoch = epoch - (epoch%10000); //rounding down to 10 seconds
 		singleObj.epoch5min = epoch - (epoch%300000);
 		liveDataUpsert(singleObj);

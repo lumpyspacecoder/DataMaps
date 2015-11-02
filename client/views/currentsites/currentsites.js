@@ -3,17 +3,18 @@ currentSites = new Meteor.Collection('currentsites');
 var selectedPoints = null;
 Template.currentsites.onRendered(function (){
 	//make collections, not vars, and populate from subscription
-	Tracker.autorun(function () {
+	//if you start autorun here, it reloads on refresh, but does all the calculations 4-8 times
 		//can we put five minute with box plots; other pollutants; delete, etc.
         site = new ReactiveVar();
         time2find = new ReactiveVar();
         site.set('481670571'); //neet to check about subscribe needing string
         time2find.set((new Date).getTime());//passing epoch as most recent?
-        time2find.set('5196294320000');  //for testing
-        timeChosen = time2find.get() - (time2find.get()%360000000);
+        time2find.set('5207179090000');  //for testing 5196299900000 (uh)/5196294320000 /laptop
+        timeChosen = time2find.get() - (time2find.get()%1000000000);
         timeChosenStr = timeChosen.toString().replace(/0+$/,'');
         Meteor.subscribe('livedata',site.get(),timeChosenStr);
 		pollutCursor = LiveData.find({}, {limit: 40});
+        console.log(pollutCursor.count())
 		dataSets = new ReactiveDict();
 		dataPacks = new ReactiveDict();
 		dataIngraph = {};
@@ -25,12 +26,12 @@ Template.currentsites.onRendered(function (){
 				};
 				for (i=0;i<line.subTypes.metrons[metron].length;i++){
 					var metric = line.subTypes.metrons[metron][i].metric
-					if (metric == 'Flag'){
-						dataIngraph[metron]['Flag'].push({ 
-							x: new Date(line.epoch*1000),
-							y: line.subTypes.metrons[metron][i].val
-						})
-					}else{
+//					if (metric == 'Flag'){
+//						dataIngraph[metron]['Flag'].push({ 
+//							x: new Date(line.epoch*1000),
+//							y: line.subTypes.metrons[metron][i].val
+//						})
+//					}else{
 						if (!dataIngraph[metron][metric]){
 							dataIngraph[metron][metric] = [];
 						}else{
@@ -39,23 +40,28 @@ Template.currentsites.onRendered(function (){
 								y: line.subTypes.metrons[metron][i].val
 							})
 						}
-					}
+				//	}
 				}
 			}
 		});
 		var data4graph = {};
+        var metronCount = 0;
 		for (metron in dataIngraph){
 			data4graph[metron] = {};
+            metronCount++;
+            console.log('metronCount',metronCount)
 			for (metric in dataIngraph[metron]){
 				data4graph[metron].name = metron+'_'+metric;
 				data4graph[metron].color = '#8CB921'; //could choose from an indexed list??
 				data4graph[metron].type = 'bubble';
 				data4graph[metron].data = dataIngraph[metron][metric]
-				//dataSets.set(metron+'_'+metric,data4graph[metron]) //this gives only the flag
+				dataSets.set(metron+'_'+metric,data4graph[metron]) //this gives only the flag
 			}
-			dataSets.set(metron,data4graph[metron]) //this gives only the conc in readout
+			//dataSets.set(metron,data4graph[metron]) //this gives only the conc in readout
 		};
-		
+        console.log(dataSets);
+   Tracker.autorun(function () {
+            
 		dataSeriesVar = new ReactiveVar();
 		dataSeries = function(){
 			datname = 'really ugly';

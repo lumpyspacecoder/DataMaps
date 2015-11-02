@@ -70,6 +70,7 @@ Template.currentsites.onRendered(function (){
 			dattype = 'bubble';
 			dataSets.set('Temp','ugly');//as name implies, this drives me crazy
 			for (key in dataSets.keys){
+ //               if (dataSets.get(key) == 'O3_Flag'){
 				if(dataSets.get(key)!='ugly'){
 					// console.log('key',key)
 // 					console.log(dataSets.get(key).name)
@@ -88,6 +89,8 @@ Template.currentsites.onRendered(function (){
 						color: datcolor,
 						type: dattype
 				};
+                //need to add them together, or run them together in the chart
+                
 			}
 		};
 		dataSeriesVar = dataSeries();
@@ -146,7 +149,7 @@ Template.currentsites.onRendered(function (){
 		            text: 'Ozone Concentration'
 		        }
 		    },
-			series: [dataSeriesVar],
+//			series: [dataSeriesVar],
 		     // series: [{
 // 		         name: "Ozone Concentration",
 // 		         data: [],//dataSets.get('O3')['03'].data,//data4graph,

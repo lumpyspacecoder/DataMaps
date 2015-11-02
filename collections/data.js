@@ -1,111 +1,119 @@
 Sites = new Mongo.Collection('sites');
+Monitors = new Mongo.Collection('monitors');
 Favorites = new Mongo.Collection('favorites');
 LiveData = new Mongo.Collection('livedata');
 AggrData = new Mongo.Collection('aggregatedata5min');
 TCEQData = new Mongo.Collection('tceqdata');
+
 Schemas = {};
-//for AQSID, remove the _ as part of the validation?? make ID combination of others??
-Schemas.Sites = new SimpleSchema({
-	_id: {
-		type: String,
-		max: 60
-	},
-	AQSID: {
-		type: String,
-		max: 20
-	},
-	CAMSID: {
-		type: String,
-		max: 6
-	},
-	AlphaID: {
-		type: String,
-		max: 20
-	},
-	description: {
-	  type: String,
-	  autoform: {
-	    rows: 5
-	  }
-	},
-	createdAt: {
-	  type: Date,
-	  label: 'Date',
-	  autoValue: function () {
-	    if (this.isInsert) {
-	      return new Date();
-	    }
-	  }
-	},
-	createdBy: {
-	  type: String,
-	  regEx: SimpleSchema.RegEx.Id,
-	  autoValue: function () {
-	    if (this.isInsert) {
-	      return Meteor.userId();
-	    }
-	  },
-	autoform: {
-	  options: function () {
-	    _.map(Meteor.users.find().fetch(), function (user) {
-	      return {
-	        label: user.emails[0].address,
-	        value: user._id
-	      };
-	    });
-	  }
-	}
-  }
+
+Schemas.Monitors = new SimpleSchema({
+
+    AQSID: {
+        type: String,
+        max: 15
+    },
+    updatesParameters: {
+        type: [Object],
+        optional: true,
+        autoValue: function () {
+            var parameter = this.field("parameter name");
+            if (parameter.isSet) {
+                if (this.isInsert) {
+                    return [{
+                        parameter: parameter.value
+            }];
+                } else {
+                    return {
+                        $push: {
+                            parameter: parameter.value
+                        }
+                    };
+                }
+            } else {
+                this.unset();
+            }
+        }
+    },
+    siteCode: {
+        type: String,
+        max: 10
+    },
+    siteName: {
+        type: String,
+        max: 50
+    },
+    active: {
+        type: String,
+        max: 10
+    },
+    agencyId: {
+        type: String,
+        max: 5
+    },
+    agencyName: {
+        type: String,
+        max: 200
+    },
+    EPARegion: {
+        type: String,
+        max: 50
+    },
+//    loc: {
+//        type: "Point",
+//        coordinates: [MonitorData[monitor]['longitude'] / 1.0 || -5.3698,
+//                MonitorData[monitor]['latitude'] / 1.0] || 29.7604
+//    },
+//    elevation: {
+//        type: double
+//    },
+//    GMToffset: {
+//        type: int
+//    },
+//    countryCode: {
+//        type: String,
+//        max: 10
+//    },
+//    CMSACode: {
+//        type: String,
+//        max: 10
+//    },
+//    CMSAName: {
+//        type: String,
+//        max: 10
+//    },
+//    MSACode: {
+//        type: String,
+//        max: 10
+//    },
+//    MSAName: {
+//        type: String,
+//        max: 10
+//    },
+//    stateCode: {
+//        type: String,
+//        max: 10
+//    },
+//    stateName: {
+//        type: String,
+//        max: 10
+//    },
+//    countyCode: {
+//        type: String,
+//        max: 10
+//    },
+//    countyName: {
+//        type: String,
+//        max: 10
+//    },
+//    cityCode: {
+//        type: String,
+//        max: 10
+//    },
+//    cityName: {
+//        type: String,
+//        max: 10
+//    }
 });
 
-Sites.attachSchema(Schemas.Sites)
-
-Schemas.SensorRdgs = new SimpleSchema({
-	sensor: {
-	  type: Array,
-	  optional: true
-	},
-	'sensor.$':{
-	  type: Object,
-	  optional: true
-	},
-	'sensor.$.name': {
-	  type: String,
-	  optional: true
-  	},
-	'sensor.$.rdgType': {
-  	  type: String,
-	  optional: true
-  	},
-  	'sensor.$.value': {
-  	  type: Number,
-	  optional: true
-  	}
-});
-Schemas.AggrData = new SimpleSchema({
-  siteId: {
-    type: String
-  },
-  dateGMT: {
-	  type: Date,
-	  optional: true
-  },
-  timeGMT: {
-	  type: String,
-	  optional: true
-  },
-  period: {
-	  type: String,
-	  optional: true
-  },
-  BIT: {
-  	  type: Boolean,
-	  optional: true
-  },
-  sensors: {
-	  type: Schemas.SensorRdgs,
-	  optional: true
-  }
-});
-
-//AggrData.attachSchema(Schemas.AggrData)
+Monitors.attachSchema(Schemas.Monitors);

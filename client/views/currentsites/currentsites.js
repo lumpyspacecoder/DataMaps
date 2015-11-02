@@ -9,8 +9,8 @@ Template.currentsites.onRendered(function (){
         time2find = new ReactiveVar();
         site.set('481670571'); //neet to check about subscribe needing string
         time2find.set((new Date).getTime());//passing epoch as most recent?
-        time2find.set('5207179090000');  //for testing 5196299900000 (uh)/5196294320000 /laptop
-        timeChosen = time2find.get() - (time2find.get()%1000000000);
+        time2find.set('1446444488');  //for testing 5196299900000 (uh)/5196294320000 /laptop
+        timeChosen = time2find.get() - (time2find.get()%1000000);
         timeChosenStr = timeChosen.toString().replace(/0+$/,'');
         Meteor.subscribe('livedata',site.get(),timeChosenStr);
 		pollutCursor = LiveData.find({}, {limit: 40});

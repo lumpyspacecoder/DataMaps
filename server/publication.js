@@ -1,5 +1,6 @@
 Meteor.publish('livedata', function (site,timeChosen) {
 	var self = this; //because 'this' is different inside of added
+	//console.log(LiveData.findOne())
 	var siteTimeChosen = new RegExp('^'+site+'_'+timeChosen);
 	var live2show = LiveData.find({_id: {$regex:siteTimeChosen}}).observeChanges({
 		added: function (id, fields) {

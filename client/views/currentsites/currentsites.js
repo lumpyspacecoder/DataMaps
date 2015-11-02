@@ -1,14 +1,90 @@
 currentSites = new Meteor.Collection('currentsites');
 
 var selectedPoints = null;
-var ozoneCursor = null;
-
-
 Template.currentsites.onRendered(function (){
-//Template.currentsites.onCreated(function (){
 	//make collections, not vars, and populate from subscription
- //	Tracker.autorun(function () {
+	Tracker.autorun(function () {
 		//can we put five minute with box plots; other pollutants; delete, etc.
+        site = new ReactiveVar();
+        time2find = new ReactiveVar();
+        site.set('481670571'); //neet to check about subscribe needing string
+        time2find.set((new Date).getTime());//passing epoch as most recent?
+        time2find.set('5196294320000');  //for testing
+        timeChosen = time2find.get() - (time2find.get()%360000000);
+        timeChosenStr = timeChosen.toString().replace(/0+$/,'');
+        Meteor.subscribe('livedata',site.get(),timeChosenStr);
+		pollutCursor = LiveData.find({}, {limit: 40});
+		dataSets = new ReactiveDict();
+		dataPacks = new ReactiveDict();
+		dataIngraph = {};
+		pollutCursor.forEach(function(line){
+			for (metron in line.subTypes.metrons){
+				if (!dataIngraph[metron]) { //metron is name of measuring quantity
+					dataIngraph[metron] = {};
+					dataIngraph[metron]['Flag'] = [];
+				};
+				for (i=0;i<line.subTypes.metrons[metron].length;i++){
+					var metric = line.subTypes.metrons[metron][i].metric
+					if (metric == 'Flag'){
+						dataIngraph[metron]['Flag'].push({ 
+							x: new Date(line.epoch*1000),
+							y: line.subTypes.metrons[metron][i].val
+						})
+					}else{
+						if (!dataIngraph[metron][metric]){
+							dataIngraph[metron][metric] = [];
+						}else{
+							dataIngraph[metron][metric].push({
+								x: new Date(line.epoch*1000),
+								y: line.subTypes.metrons[metron][i].val
+							})
+						}
+					}
+				}
+			}
+		});
+		var data4graph = {};
+		for (metron in dataIngraph){
+			data4graph[metron] = {};
+			for (metric in dataIngraph[metron]){
+				data4graph[metron].name = metron+'_'+metric;
+				data4graph[metron].color = '#8CB921'; //could choose from an indexed list??
+				data4graph[metron].type = 'bubble';
+				data4graph[metron].data = dataIngraph[metron][metric]
+				//dataSets.set(metron+'_'+metric,data4graph[metron]) //this gives only the flag
+			}
+			dataSets.set(metron,data4graph[metron]) //this gives only the conc in readout
+		};
+		
+		dataSeriesVar = new ReactiveVar();
+		dataSeries = function(){
+			datname = 'really ugly';
+			datdata = '';
+			datcolor = '';
+			dattype = 'bubble';
+			dataSets.set('Temp','ugly');//as name implies, this drives me crazy
+			for (key in dataSets.keys){
+				if(dataSets.get(key)!='ugly'){
+					// console.log('key',key)
+// 					console.log(dataSets.get(key).name)
+					if (dataSets.get(key).name){datname = dataSets.get(key).name};
+					if (dataSets.get(key).data){datdata = dataSets.get(key).data};
+					if (dataSets.get(key).color){datcolor = dataSets.get(key).color};
+					if (dataSets.get(key).type){dattype = dataSets.get(key).type};
+				// if (dataSets.get(key)[key].name){datname = dataSets.get(key)[key].name};
+				// if (dataSets.get(key)[key].data){datdata = dataSets.get(key)[key].data};
+				// if (dataSets.get(key)[key].color){datcolor = dataSets.get(key)[key].color};
+				// if (dataSets.get(key)[key].type){dattype = dataSets.get(key)[key].type};
+				}
+				//key is the metron, and should be used for higher on select
+ 				return {name: datname,
+						data: datdata,
+						color: datcolor,
+						type: dattype
+				};
+			}
+		};
+		dataSeriesVar = dataSeries();
 		var $report= $('#report');
 		Highcharts.setOptions({
 		    global: {
@@ -41,7 +117,7 @@ Template.currentsites.onRendered(function (){
 								point.y < event.yAxis[0].max) {
 									point.select(true, true);
 								}
-                			
+
 						}
 						return false;
 					}
@@ -64,12 +140,12 @@ Template.currentsites.onRendered(function (){
 		            text: 'Ozone Concentration'
 		        }
 		    },
-//			series: [dataSeries()],
-		     series: [{
-		         name: "Ozone Concentration",
-		         data: [],//dataSets.get('O3')['03'].data,//data4graph,
-		         color: '#8CB921'
-		     }],
+			series: [dataSeriesVar],
+		     // series: [{
+// 		         name: "Ozone Concentration",
+// 		         data: [],//dataSets.get('O3')['03'].data,//data4graph,
+// 		         color: '#8CB921'
+// 		     }],
 		    plotOptions: {
 		        series: {
 		            allowPointSelect: true,
@@ -91,71 +167,10 @@ Template.currentsites.onRendered(function (){
 		        }
 		    }
 	}); //end of chart
-//});//end autorun
+});//end autorun
 	//var data4graphColl = new Meteor.Collection('dataInGraph');
 }); //end of onRendered
-/*
-			events:{
-				selection: function(event) {
-					event.preventDefault();
-					// log the min and max of the primary, datetime x-axis
-					console.log(
-						Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', event.xAxis[0].min),
-						Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', event.xAxis[0].max)
-					);
-					// log the min and max of the y axis
-					console.log(event.yAxis[0].min, event.yAxis[0].max);
-				}
-			},
-function selectPointsByDrag(e) {
 
-    // Select points
-    Highcharts.each(this.series, function (series) {
-        Highcharts.each(series.points, function (point) {
-            if (point.x >= e.xAxis[0].min && point.x <= e.xAxis[0].max &&
-                    point.y >= e.yAxis[0].min && point.y <= e.yAxis[0].max) {
-                point.select(true, true);
-            }
-        });
-    });
-
-    // Fire a custom event
-    HighchartsAdapter.fireEvent(this, 'selectedpoints', { points: this.getSelectedPoints() });
-
-    return false; // Don't zoom
-}
-
-function selectedPoints(e) {
-    // Show a label
-    toast(this, '<b>' + e.points.length + ' points selected.</b>' +
-        '<br>Click on empty space to deselect.');
-}
-
-function unselectByClick() {
-    var points = this.getSelectedPoints();
-    if (points.length > 0) {
-        Highcharts.each(points, function (point) {
-            point.select(false);
-        });
-    }
-}
-
-$('#container').highcharts({
-
-    title: {
-        text: 'Select points by click-drag'
-    },
-
-    chart: {
-        type: 'scatter',
-        events: {
-            selection: selectPointsByDrag,
-            selectedpoints: selectedPoints,
-            click: unselectByClick
-        },
-        zoomType: 'xy'
-    },
-	*/
 Template.currentsites.helpers({
 });
 Template.currentsites.events({

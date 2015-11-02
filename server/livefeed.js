@@ -5,16 +5,16 @@ var fs = Meteor.npmRequire('fs');
 var logger = Meteor.npmRequire('winston'); // this retrieves default logger which was configured in log.js
 
 var perform5minAggregat = function (siteId, timeChosen) {
-    
-    var siteChosen = new RegExp('^'+siteId);
-    var timeChose = new RegExp('^'+timeChosen);
-    
+
+    var siteChosen = new RegExp('^' + siteId);
+    var timeChose = new RegExp('^' + timeChosen);
+
     var pipeline = [
         {
             $match: {
-                site: {$regex:siteChosen},
-                epoch5min: {$regex:timeChose}
-                
+                site: {
+                    $regex: siteChosen
+                }
             }
         },
         {
@@ -97,14 +97,17 @@ var liveDataUpsert = Meteor.bindEnvironment(function (dir, obj) {
         incoming: dir
     }).fetch()[0];
 
-    LiveData.upsert({
-        _id: site.AQSID + '_' + obj.epoch
-    }, {
-        epoch : obj.epoch,
-		epoch5min : obj.epoch5min,
-		site : site.AQSID,
-        subTypes: obj.subTypes
-    });
+    if (obj.epoch > 0) {
+        LiveData.upsert({
+            _id: site.AQSID + '_' + obj.epoch
+        }, {
+            epoch: obj.epoch,
+            epoch5min: obj.epoch5min,
+            site: site.AQSID,
+            subTypes: obj.subTypes,
+            theTime: obj.theTime
+        });
+    }
 });
 
 var makeObj = function (keys) {
@@ -142,9 +145,10 @@ var makeObj = function (keys) {
 var write10Sec = function (dir, arr) {
     for (var k = 0; k < arr.length; k++) {
         var singleObj = makeObj(arr[k]);
-        var epoch = (((arr[k].TheTime - 25569) * 86400) + 6) * 3600;
-        singleObj.epoch = epoch - (epoch % 10000); //rounding down to 10 seconds
-        singleObj.epoch5min = epoch - (epoch % 300000);
+        var epoch = ((arr[k].TheTime - 25569) * 86400) + 6 * 3600;
+        singleObj.epoch = epoch - (epoch % 1); //rounding down
+        singleObj.epoch5min = epoch - (epoch % 300);
+        singleObj.theTime = arr[k].TheTime;
         liveDataUpsert(dir, singleObj);
     }
 };

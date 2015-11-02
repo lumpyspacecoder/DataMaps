@@ -4,20 +4,107 @@ var csvmodule = Meteor.npmRequire('csv');
 var fs = Meteor.npmRequire('fs');
 var logger = Meteor.npmRequire('winston'); // this retrieves default logger which was configured in log.js
 
-//insert live data into DB - serves as a cache for most recent day; _id is site_epoch
+var perform5minAggregat = function (siteId, timeChosen) {
+    
+    var siteChosen = new RegExp('^'+siteId);
+    var timeChose = new RegExp('^'+timeChosen);
+    
+    var pipeline = [
+        {
+            $match: {
+                site: {$regex:siteChosen},
+                epoch5min: {$regex:timeChose}
+                
+            }
+        },
+        {
+            $project: {
+                epoch5min: 1,
+                epoch: 1,
+                site: 1,
+                'subTypes.metrons': 1
+            }
+        },
+        {
+            $group: {
+                _id: '$epoch5min',
+                site: {
+                    $last: "$site"
+                },
+                nuisance: {
+                    $push: "$subTypes.metrons"
+                }
+            }
+        }
+     ];
+
+    LiveData.aggregate(pipeline,
+        Meteor.bindEnvironment(
+            function (err, result) {
+                _.each(result, function (e) {
+                    var subObj = {};
+                    subObj._id = e._id;
+                    subObj.site = e.site;
+                    var metrons = e.nuisance;
+                    for (i = 0; i < metrons.length; i++) {
+                        for (var newkey in metrons[i]) {
+                            if (metrons[i][newkey][1]['metric'] === "Flag" && metrons[i][newkey][1]['val'] === 1) {
+                                if (!subObj[newkey]) {
+                                    subObj[newkey] = {
+                                        'sum': metrons[i][newkey][0]['val'],
+                                        'avg': metrons[i][newkey][0]['val'],
+                                        'variance': 0.0,
+                                        'stdDev': 0.0,
+                                        'numValid': parseInt(1),
+                                        'Flag': 1
+                                    };
+                                } else {
+                                    subObj[newkey]['numValid'] += 1;
+                                    subObj[newkey]['sum'] += metrons[i][newkey][0]['val']; //holds sum until end
+                                    subObj[newkey]['avg'] = subObj[newkey]['sum'] / subObj[newkey]['numValid'];
+                                    subObj[newkey]['variance'] += Math.pow((metrons[i][newkey][0]['val'] - subObj[newkey]['avg']), 2);
+                                }
+                                subObj[newkey]['stdDev'] = Math.sqrt(subObj[newkey]['variance']);
+                                if ((subObj[newkey]['numValid'] / i) < .75) {
+                                    subObj[newkey]['Flag'] = 0; //should discuss how to use
+                                }
+                            }
+                        }
+                    }
+                    AggrData.update({
+                            _id: subObj._id
+                        },
+                        subObj, {
+                            upsert: true
+                        });
+                    //console.log(subObj)
+                    //I turned off schema in data.js
+                });
+
+            },
+            function (error) {
+                Meteor._debug("error during aggregation: " + error);
+            }
+        )
+    );
+};
+
+//insert live data into DB; _id is site_epoch
 //obj has subTypes, epoch5min
 var liveDataUpsert = Meteor.bindEnvironment(function (dir, obj) {
-    var site = Monitors.findOne({
+
+    var site = Monitors.find({
         incoming: dir
-    });
+    }).fetch()[0];
 
     LiveData.upsert({
         _id: site.AQSID + '_' + obj.epoch
     }, {
-        epoch5min: obj.epoch5min,
+        epoch : obj.epoch,
+		epoch5min : obj.epoch5min,
+		site : site.AQSID,
         subTypes: obj.subTypes
     });
-
 });
 
 var makeObj = function (keys) {
@@ -81,6 +168,33 @@ var readFile = function (path) {
     });
 };
 
+//Meteor.setInterval(function () {
+//    var siteId = '481670571';
+//    var epochNow = (new Date()).getTime(); //passing epoch as most recent? 
+//    var timeChosen = epochNow - (epochNow % 300000);
+//    perform5minAggregat(siteId, timeChosen);
+//}, 300000); //every five minutes
+
+Meteor.methods({ //make own file???
+    getCurrentTime: function () {
+        console.log('on server, getCurrentTime called');
+        return new Date();
+    },
+    welcome: function (name) {
+        console.log('on server, welcome called with name: ', name);
+        if (name == undefined || name.length <= 0) {
+            throw new Meteor.Error(404, "Please enter your name");
+        }
+        return "Welcome " + name;
+    },
+    new5minAggreg: function (siteId, timeChosen) {
+        console.log('on server, perform5monAggreg called for site: ', siteId, ' and epoch: ', timeChosen);
+        perform5minAggregat(siteId, timeChosen);
+    }
+}); //end methods
+
+//can be used when server starts up to read existing files in the directory,
+//this can be slow if there are a lot of files to process
 var initialRead = function (directory) {
     fs.readdir(directory, function (err, files) {
         if (err) {
@@ -88,11 +202,10 @@ var initialRead = function (directory) {
         }
         files.forEach(function (f) {
             var path = directory + f;
-            logger.info('found: ', path);
+            logger.info('initialRead found file: ', path);
             readFile(path);
         });
     });
-
 };
 
 var liveWatcher = chokidar.watch('/hnet/incoming/2015', {
@@ -118,6 +231,6 @@ liveWatcher
         logger.error('Error happened', error);
     })
     .on('ready', function () {
-        initialRead('/hnet/incoming/2015/UHCCH_DAQData/');
-        logger.info('Initial scan for hnetincoming2015 complete. Ready for changes');
+        //initialRead('/hnet/incoming/2015/UHCCH_DAQData/');
+        logger.info('Initial scan for /hnet/incoming/2015/UHCCH_DAQData/ complete. Ready for changes.');
     });

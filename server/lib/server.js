@@ -6,7 +6,9 @@ winston.add(winston.transports.DailyRotateFile, {
     dirname: '/var/log/meteor/'
 });
 
-winston.info('Winston logs are being captured 2 ways- console and file.');
+winston.info('Winston logs are being captured console and file (/var/log/meteor/datamaps.log)');
+
+IncomingLiveDataDir = '/hnet/incoming/2015';
 
 AdminConfig = {
   collections: {

@@ -1,4 +1,5 @@
 Meteor.subscribe('sites');
+var mapCenter = null;
 
 Template.map.rendered = function () {
    // if (!Session.get('map')) {

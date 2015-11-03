@@ -11,15 +11,24 @@
 
 <template name="menu">
 <select id="siteselect">
-         {{#each currentSites}}
+         {{#each selectPacks}}
          <option href="/currentsites">{{this}}</option>
          {{/each}}
          </select>
 </template>
 
 <template name="currentsites">
-    
-    <h2 align="center">The last 24h at {{>menu}}  </h2>
+	<select id="keyselect">
+	         {{#each selectKeys}}
+	         <option href="/currentsites">{{this}}</option>
+	         {{/each}}
+	         </select>
+    {<select id="packselect">
+	         {{#each selectPacks}}
+	         <option href="/currentsites">{{this}}</option>
+	         {{/each}}
+	         </select>
+    <!-- <h2 align="center">The last 24h at {{>menu}}  </h2> -->
 <div id="container-chart-reactive" style="width: 100%"></div>
 
 <div id="report"></div>

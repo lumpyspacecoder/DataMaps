@@ -92,10 +92,16 @@ var perform5minAggregat = function (siteId, timeChosen) {
 //insert live data into DB; _id is site_epoch
 //obj has subTypes, epoch5min
 var liveDataUpsert = Meteor.bindEnvironment(function (dir, obj) {
-
-    var site = Monitors.find({
-        incoming: dir
-    }).fetch()[0];
+	if(!Monitors.findOne()){
+		var site = {};
+		site.AQSID = dir;
+		//needs to throw a useful error!!! 
+	}else{
+		//do we have an interface for the Monitors?
+		var site = Monitors.find({
+		    incoming: dir
+		}).fetch()[0];
+	}
 
     if (obj.epoch > 0) {
         LiveData.upsert({

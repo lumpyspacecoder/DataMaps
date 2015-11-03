@@ -14,7 +14,6 @@ Template.currentsites.onRendered(function (){
         timeChosenStr = timeChosen.toString().replace(/0+$/,'');
         Meteor.subscribe('livedata',site.get(),timeChosenStr);
 		pollutCursor = LiveData.find({}, {limit: 40});
-        console.log(pollutCursor.count())
 		dataSets = new ReactiveDict();
 		dataPacks = new ReactiveDict();
 		dataIngraph = {};
@@ -44,56 +43,32 @@ Template.currentsites.onRendered(function (){
 				}
 			}
 		});
+//	Tracker.autorun(function () {
+		selectData = new ReactiveVar();
 		var data4graph = {};
-        var metronCount = 0;
 		for (metron in dataIngraph){
+			var data4select = [];
 			data4graph[metron] = {};
-            metronCount++;
-            console.log('metronCount',metronCount)
 			for (metric in dataIngraph[metron]){
 				data4graph[metron].name = metron+'_'+metric;
 				data4graph[metron].color = '#8CB921'; //could choose from an indexed list??
 				data4graph[metron].type = 'bubble';
-				data4graph[metron].data = dataIngraph[metron][metric]
-				dataSets.set(metron+'_'+metric,data4graph[metron]) //this gives only the flag
+				data4graph[metron].data = dataIngraph[metron][metric];
+				dataSets.set(metron+'_'+metric,data4graph[metron]);
+				data4select.push(metric);
 			}
-			//dataSets.set(metron,data4graph[metron]) //this gives only the conc in readout
+			dataPacks.set(metron,data4select);
+			selectData.set(data4select);
 		};
-        console.log(dataSets);
-   Tracker.autorun(function () {
+    Tracker.autorun(function () {
             
 		dataSeriesVar = new ReactiveVar();
-		dataSeries = function(){
-			datname = 'really ugly';
-			datdata = '';
-			datcolor = '';
-			dattype = 'bubble';
-			dataSets.set('Temp','ugly');//as name implies, this drives me crazy
-			for (key in dataSets.keys){
- //               if (dataSets.get(key) == 'O3_Flag'){
-				if(dataSets.get(key)!='ugly'){
-					// console.log('key',key)
-// 					console.log(dataSets.get(key).name)
-					if (dataSets.get(key).name){datname = dataSets.get(key).name};
-					if (dataSets.get(key).data){datdata = dataSets.get(key).data};
-					if (dataSets.get(key).color){datcolor = dataSets.get(key).color};
-					if (dataSets.get(key).type){dattype = dataSets.get(key).type};
-				// if (dataSets.get(key)[key].name){datname = dataSets.get(key)[key].name};
-				// if (dataSets.get(key)[key].data){datdata = dataSets.get(key)[key].data};
-				// if (dataSets.get(key)[key].color){datcolor = dataSets.get(key)[key].color};
-				// if (dataSets.get(key)[key].type){dattype = dataSets.get(key)[key].type};
-				}
-				//key is the metron, and should be used for higher on select
- 				return {name: datname,
-						data: datdata,
-						color: datcolor,
-						type: dattype
-				};
-                //need to add them together, or run them together in the chart
-                
-			}
+		dataSeries = function(metron){
+			return dataSets.get(metron)
 		};
-		dataSeriesVar = dataSeries();
+		dataSeriesVar.set([]);//dataSeries('O3_conc');chart.series[0].setData([dataSeriesVar]);
+		//or//chart.series[0].setData([dataSeries(metron)]);
+		
 		var $report= $('#report');
 		Highcharts.setOptions({
 		    global: {
@@ -116,7 +91,7 @@ Template.currentsites.onRendered(function (){
 		    },
 		    chart:{
 				events: {
-					//click: function(){testIt()},
+					//click: function(){alert('dafdfs')},
 					selection: function(event) {
 						for (var i = 0; i < this.series[0].data.length; i++) {
 							var point = this.series[0].data[i];
@@ -149,12 +124,12 @@ Template.currentsites.onRendered(function (){
 		            text: 'Ozone Concentration'
 		        }
 		    },
-//			series: [dataSeriesVar],
+			series: [dataSeriesVar],
 		     // series: [{
-// 		         name: "Ozone Concentration",
-// 		         data: [],//dataSets.get('O3')['03'].data,//data4graph,
-// 		         color: '#8CB921'
-// 		     }],
+		     //     name: "Ozone Concentration",
+		     //     data: [],//dataSets.get('O3')['03'].data,//data4graph,
+		     //     color: '#8CB921'
+		     // }],
 		    plotOptions: {
 		        series: {
 		            allowPointSelect: true,
@@ -181,8 +156,26 @@ Template.currentsites.onRendered(function (){
 }); //end of onRendered
 
 Template.currentsites.helpers({
+	//switch map to sites twice to show??
+	selectKeys: function(){
+		//console.log(selectData.get())
+		return selectData.get()
+	},
+	selectPacks: function(){
+		return dataPacks.get('O3')//thePack//.keys
+	}
+	
 });
 Template.currentsites.events({
+	"change #packselect": function(event){
+		dataSeriesVar.set(dataSeries(event.currentTarget.value)) //should be the metron_metric combo
+		 //Template.instance().ctrlMenus.set('collectName', event.currentTarget.value); if works in onCreated
+	},
+	"change #keyselect": function(event){
+		alert('dfa')
+		//dataSeriesVar.set(dataSeries(event.currentTarget.value)) //should be the metron_metric combo
+		 //Template.instance().ctrlMenus.set('collectName', event.currentTarget.value); if works in onCreated
+	},
   "click #button2": function(e){
     var points = selectedPoints;
 			

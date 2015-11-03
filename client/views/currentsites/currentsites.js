@@ -22,6 +22,15 @@ function reactiveArea() {
         }
     });
     
+    $('.button')
+  .popup({
+    popup : $('.flowing.popup.top.left.transition.hidden'),
+    on    : 'click'
+  });
+
+  $('.ui.checkbox').checkbox({
+    toggle : 'click'
+});
   var chart = $('#container-chart-reactive').highcharts({
         exporting: {
             chartOptions: { // specific options for the exported image
@@ -171,6 +180,8 @@ Template.currentsites.events({
             type: 'application/pdf',
             filename: 'my-pdf'
         });
-    }
+    },
+
+
 
 });

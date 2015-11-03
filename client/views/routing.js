@@ -19,16 +19,18 @@ Router.route('/currentsites', {
     waitOn: function(){
         site = new ReactiveVar();
         time2find = new ReactiveVar();
+        console.log('moment',moment().subtract(1, 'days').unix())
         site.set('481670571'); //neet to check about subscribe needing string
         //time2find.set((new Date).getTime() - (epoch % 1));//passing epoch as most recent?
-        var nowEpoch = '1446444488'; //testing
-        var nowDown = nowEpoch - (nowEpoch % 1);
+        //var nowEpoch = moment().subtract(1, 'days').unix();//'144644488'; //testing
+        var nowEpoch = moment("2015-11-03").subtract(1, 'days').unix();//'144644488'; //testing
+        var nowDown = nowEpoch - (nowEpoch % 10);
         var fiveDown = nowDown - (nowDown % 300);
         var hourDown = nowDown - (nowDown % 3600);
         //var dayDown = (nowDown - 86400) - ((nowDown - 86400) % 3600);
         time2find.set(hourDown);  //for testing 5196299900000 (uh)/5196294320000 /laptop
         timeChosen = time2find.get();
-        timeChosenStr = timeChosen.toString().replace(/0+$/,'');
+        timeChosenStr = timeChosen;//.toString();//.replace(/0+$/,'');
         Meteor.subscribe('livedata',site.get(),timeChosenStr);
 		pollutCursor = LiveData.find({}, {limit: 400});
 		dataSets = new ReactiveDict();

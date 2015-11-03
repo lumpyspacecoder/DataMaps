@@ -32,13 +32,32 @@
 //	//return LiveData.find({_id: {$regex:siteTimeChosen}});
 //});
 Meteor.publish('livedata', function (site,timeChosen) {
-    console.log(timeChosen);
-	var siteTimeChosen = new RegExp('^'+site+'_'+timeChosen);
-	return LiveData.find({_id: {$regex:siteTimeChosen}});
+    return LiveData.find({
+            $and: [{
+                site: site
+        }, {
+                epoch: {
+                    $gt: parseInt(timeChosen, 10)
+                }
+        }
+        ]
+        });
+//	var siteTimeChosen = new RegExp('^'+site+'_'+timeChosen);
+//	return LiveData.find({_id: {$regex:siteTimeChosen}});
 });
 Meteor.publish('aggregatedata5min', function (site,timeChosen) {
-	var siteTimeChosen = new RegExp('^'+timeChosen);
-	return AggrData.find({});
+    return AggrData.find({
+            $and: [{
+                site: site
+        }, {
+                epoch: {
+                    $gt: parseInt(timeChosen, 10)
+                }
+        }
+        ]
+        });
+//	var siteTimeChosen = new RegExp('^'+timeChosen);
+//	return AggrData.find({});
 });
 Meteor.publish('tceqData', function () {
     var now = new Date();

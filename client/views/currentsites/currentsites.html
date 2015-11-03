@@ -9,6 +9,7 @@
 
 </template> -->
 
+<!--
 <template name="menu">
 <select id="siteselect">
          {{#each selectPacks}}
@@ -16,18 +17,26 @@
          {{/each}}
          </select>
 </template>
+-->
 
 <template name="currentsites">
+<!--
+    <select id="timeselect">
+        <option disabled selected>Select Time</option>
+	   <option>Previous 24 hours</option>
+	   <option>Previous hour</option>
+    </select>
 	<select id="keyselect">
 	         {{#each selectKeys}}
-	         <option href="/currentsites">{{this}}</option>
+	         <option>{{this}}</option>
 	         {{/each}}
 	         </select>
-    {<select id="packselect">
+    <select id="packselect">
 	         {{#each selectPacks}}
-	         <option href="/currentsites">{{this}}</option>
+	         <option>{{this}}</option>
 	         {{/each}}
 	         </select>
+-->
     <!-- <h2 align="center">The last 24h at {{>menu}}  </h2> -->
 <div id="container-chart-reactive" style="width: 100%"></div>
 

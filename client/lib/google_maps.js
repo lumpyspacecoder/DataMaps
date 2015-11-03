@@ -36,8 +36,9 @@ gmaps = {
     
     markerExists: function(key, val) {
         _.each(this.markers, function(storedMarker) {
-            if (storedMarker[key] == val)
+            if (storedMarker[key] === val) {
                 return true;
+            }
         });
         return false;
     },
@@ -75,7 +76,11 @@ gmaps = {
        
         var marker = {
             lat: pos.lat,
+<<<<<<< HEAD
             lng: pos.lng,
+=======
+            lng: pos.lng
+>>>>>>> peggylind/master
         };
     	gmaps.addMarker(marker);
         

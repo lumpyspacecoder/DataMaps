@@ -1,12 +1,12 @@
 
 
-
 <template name="currentsites">
     
     <h2 align="center">The last 24h at {{>menu}}  </h2>
 <div id="container-chart-reactive" style="width: 100%"></div>
 
 <div id="report"></div>
+
 <div class="ui button">Show fluid popup</div>
 <div class="ui flowing popup top left transition hidden">
   <form class="ui form">
@@ -27,5 +27,9 @@
   <button class="ui button" type="submit">Submit</button>
 </form>
  </div>
+
+    <button id="button">Update Selected Points</button>
+     <button id="button2">Remove Selected Points</button>
+
 
 </template>

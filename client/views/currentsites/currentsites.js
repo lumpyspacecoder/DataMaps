@@ -22,7 +22,7 @@ function reactiveArea() {
         }
     });
     
-    $('.button')
+    $('.ui.button')
   .popup({
     popup : $('.flowing.popup.top.left.transition.hidden'),
     on    : 'click'
@@ -48,7 +48,7 @@ function reactiveArea() {
             fallbackToExportServer: false
         },
         chart:{
-        events: {
+           events: {
             selection: function(event) {
                 for (var i = 0; i < this.series[0].data.length; i++) {
                     var point = this.series[0].data[i];
@@ -64,15 +64,6 @@ function reactiveArea() {
             }
         },
             zoomType: 'xy'
-
-            // ***** Per Dan, will implement zoom later ****** //
-            // resetZoomButton: {
-            //     position: {
-            //         // align: 'right', // by default
-            //         // verticalAlign: 'top', // by default
-            //         x: 0,
-            //         y: -30
-            //     }
         },
         title: {
             text: 'Ozone Readings at ' + site
@@ -155,8 +146,8 @@ Template.currentsites.events({
 			
 			jQuery.each(points, function(i, point) {
 				point.remove();
-				// LiveFeedMonitors.remove(point.id);
-				// console.log('removed!');
+				LiveFeedMonitors.remove(point.id);
+				console.log('removed!');
 				
 			});
 			

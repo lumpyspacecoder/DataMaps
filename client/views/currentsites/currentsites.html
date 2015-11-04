@@ -10,7 +10,7 @@
 <div class="ui red button">HNET Data Controller</div>
 <div class="ui flowing popup top left transition hidden">
   <form class="ui form">
-  <div class="ui fluid search selection dropdown">
+  <!-- <div class="ui fluid search selection dropdown">
   <input type="hidden" name="Sensor">
   <i class="dropdown icon"></i>
   <div class="default text">Select Sensor</div>
@@ -21,21 +21,21 @@
   <div class="item">49i_O3</div>
 
 </div>
-</div>
+</div> -->
+   <div class="field">
+    <div class="ui checkbox">
+      <input type="checkbox" tabindex="0" class="hidden">
+      <label>Set New Flag</label>
+    </div>
+  </div> 
   <div class="field">
     <label>What is the updated value?</label>
     <input type="text" id="ozone-val" placeholder="Skip if you are removing points">
   </div>
-  <!-- <div class="field">
-    <div class="ui checkbox">
-      <input type="checkbox" tabindex="0" class="hidden">
-      <label>I agree to the Terms and Conditions</label>
-    </div>
-  </div> -->
+
   <div class="blue ui buttons">
-  <button class="button" id="button">Update Selected Points</button>
-     <button class="button" id="button2">Remove Selected Points</button>
-   <button class="button" type="submit">Submit Changes to Database</button>
+  <button class="button" id="button">Update Selected Points in Database</button>
+     <button class="button" id="button2">Remove Selected Points from Database</button>
 </div>
  
 </form>

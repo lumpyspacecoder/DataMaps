@@ -1,5 +1,5 @@
 
-
+var chart = null;
 var selectedPoints = null;
 var ozoneCursor = null;
 
@@ -33,7 +33,7 @@ function reactiveArea() {
 });
   $('.ui.fluid.search.selection.dropdown').dropdown('show');
   
-  var chart = $('#container-chart-reactive').highcharts({
+  chart = $('#container-chart-reactive').highcharts({
         exporting: {
             chartOptions: { // specific options for the exported image
                 plotOptions: {
@@ -60,6 +60,9 @@ function reactiveArea() {
                         }
                     
                 }
+                return false;
+            },
+            redraw: function(event){
                 return false;
             }
         },
@@ -96,6 +99,9 @@ function reactiveArea() {
         }],
         plotOptions: {
             series: {
+                marker: {
+                    enabled: true
+                },
                 allowPointSelect: true,
                 point: {
                     events: {
@@ -113,7 +119,13 @@ function reactiveArea() {
                             $report.html(selectedPointsStr);
                             
                             
+                        },
+
+                        update: function() {
+                       
+                            
                         }
+
                         // update: function() {
                         //   if (!confirm('Do you want to set the point\'s value to ' + event.options + '?')) {
                         //         return false;
@@ -155,12 +167,18 @@ Template.currentsites.events({
   "click #button": function(e){
     var points = selectedPoints;
 			
-	var update = document.getElementById('ozone-val').value;
-      var num1 = parseFloat(update);
+	// var update = document.getElementById('ozone-val').value;
+ //      var num1 = parseFloat(update);
       jQuery.each(points, function(i, point) {
-          point.update(num1);
-				  LiveFeedMonitors.update({_id: point.id}, {$set: {O3_conc : num1.toString()}});
-				  console.log('updated!');
+      //     point.update(num1);
+				  // LiveFeedMonitors.update({_id: point.id}, {$set: {O3_conc : num1.toString()}});
+				  // console.log('updated!');
+    point.graphic.attr({fill : "#ff0000"});
+     chart.series[0].data[i].update({
+            marker:{
+                fillColor: '#ff0000'
+            }
+        });
             
        });
 			

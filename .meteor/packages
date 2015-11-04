@@ -10,15 +10,11 @@ dburles:google-maps
 mdg:geolocation
 iron:router
 accounts-ui
-mdg:geolocation
-iron:router
 maazalik:highcharts
 accounts-password
 email
 meteorhacks:npm
 npm-container
-semantic:ui
-flemay:less-autoprefixer
 momentjs:moment
 udondan:bulk-collection-update
 useraccounts:iron-routing
@@ -29,7 +25,6 @@ yogiben:admin
 dburles:collection-helpers
 fortawesome:fontawesome
 meteorhacks:kadira-debug
->>>>>>> peggylind/master
 standard-minifiers
 meteor-base
 mobile-experience
@@ -47,4 +42,5 @@ check
 semantic:ui-popup
 semantic:ui-data
 meteorhacks:aggregate
-
+semantic:ui
+flemay:less-autoprefixer

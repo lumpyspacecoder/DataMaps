@@ -24,7 +24,6 @@ alanning:roles
 yogiben:admin
 dburles:collection-helpers
 fortawesome:fontawesome
-meteorhacks:kadira-debug
 standard-minifiers
 meteor-base
 mobile-experience
@@ -39,8 +38,13 @@ random
 ejson
 spacebars
 check
+<<<<<<< HEAD
 semantic:ui-popup
 semantic:ui-data
 meteorhacks:aggregate
 semantic:ui
 flemay:less-autoprefixer
+meteorhacks:aggregate
+reactive-var
+reactive-dict
+

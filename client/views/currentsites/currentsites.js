@@ -1,6 +1,4 @@
 
-
-
 currentSites = new Meteor.Collection('currentsites');
 
 var selectedPoints = null;
@@ -250,6 +248,21 @@ $('#container').highcharts({
     title: {
         text: 'Select points by click-drag'
     },
+=======
+currentSites = new Meteor.Collection('currentsites');
+
+var selectedPoints = null;
+Template.currentsites.onCreated(function (){
+
+});
+Template.currentsites.onRendered(function (){
+//    Tracker.autorun(function () {
+            
+		
+//});//end autorun
+	//var data4graphColl = new Meteor.Collection('dataInGraph');
+}); //end of onRendered
+>>>>>>> DrDanPrice/master
 
     chart: {
         type: 'scatter',
@@ -262,8 +275,32 @@ $('#container').highcharts({
     },
 	*/
 Template.currentsites.helpers({
+
+	//switch map to sites twice to show??
+	selectKeys: function(){
+		//console.log(selectData.get())
+		return selectData.get()
+	},
+	selectPacks: function(){
+		return dataPacks.get('O3')//thePack//.keys
+	}
+	
 });
 Template.currentsites.events({
+    "change #timeselect": function(){
+        dataSeriesVar.set(dataSeries('O3_conc'));
+                        },
+    "click #packselect": function(){
+                        },
+	"change #packselect": function(event){
+		dataSeriesVar.set('O3_'+event.currentTarget.value) //should be the metron_metric combo
+		 //Template.instance().ctrlMenus.set('collectName', event.currentTarget.value); if works in onCreated
+	},
+	"change #keyselect": function(event){
+		dataSeriesVar.set(dataSeries(event.currentTarget.value))
+		//dataSeriesVar.set(dataSeries(event.currentTarget.value)) //should be the metron_metric combo
+		 //Template.instance().ctrlMenus.set('collectName', event.currentTarget.value); if works in onCreated
+	},
   "click #button2": function(e){
     var points = selectedPoints;
 			
@@ -302,5 +339,3 @@ Template.currentsites.events({
 
 });
 
-
-});

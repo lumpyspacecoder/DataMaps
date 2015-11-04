@@ -38,10 +38,8 @@ random
 ejson
 spacebars
 check
-<<<<<<< HEAD
 semantic:ui-popup
 semantic:ui-data
-meteorhacks:aggregate
 semantic:ui
 flemay:less-autoprefixer
 meteorhacks:aggregate

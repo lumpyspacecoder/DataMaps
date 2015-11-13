@@ -13,7 +13,7 @@ function reactiveArea() {
 		var ozoneConDataforGraph = [];
 		ozoneCursor.forEach(function(time) {
 			ozoneConDataforGraph.push({ x: new Date(time.epoch*1000),
-									y: parseFloat(time.O3_conc), 	id: time._id});
+									y: parseFloat(time.subTypes.metrons.O3[0].val), 	id: time._id});
 		});
     
     Highcharts.setOptions({

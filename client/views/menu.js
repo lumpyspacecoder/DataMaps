@@ -17,7 +17,7 @@ Template.menu.onCreated( function() {
 Template.menu.helpers({
       currentSites: function () {
         var data = LiveFeedMonitors.find().fetch();
-         var distinctData = _.uniq(data, false, function(d) {return d.siteRef});
+         var distinctData = _.uniq(data, false, function(d) {return d._id});
          return _.pluck(distinctData, "siteRef");
 }
 });
